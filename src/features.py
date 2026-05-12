@@ -84,6 +84,41 @@ def build_block1(df, inplace=False):
     return df
 
 
-# Block 2: categorical interactions — TODO
-# Block 3: sklearn TargetEncoder(cv=5) — TODO (NEVER manual TE, see docs/pitfalls.md #5)
-# Block 4: digit extraction — TODO
+# =========================================================================
+# Block 2 — categorical interactions (one at a time, per attribution discipline).
+# Each interaction is built as a NEW categorical column that LGB consumes via
+# its native Fisher-algorithm categorical splits. This is structurally different
+# from Block 3 (TargetEncoder) — Block 2 gives LGB MORE freedom (find best
+# splits in the joint space), Block 3 gave LGB LESS freedom (collapse to one
+# numeric per combo). v2 showed TE-style was redundant; Block 2 tests if
+# explicit interaction categoricals deliver where TE didn't.
+# =========================================================================
+
+
+def add_compound_x_progress_bin(df, n_bins=40, inplace=False):
+    """Compound × RaceProgress bin (40-way) as a categorical interaction.
+
+    From EDA: pit-rate-by-RaceProgress curve is dramatically different per
+    Compound — SOFT pits at 0.05–0.225 (early), HARD pits at 0.50–0.70 (late),
+    MEDIUM pits at 0.55–0.725, etc. A single feature that combines compound +
+    bin lets LGB partition the joint pit-window space directly.
+
+    Cardinality: 5 compounds × 40 bins = up to 200 categories.
+    On 350K rows: ~1,750 obs/category — plenty for stable splits.
+    """
+    df = df if inplace else df.copy()
+    bins = np.linspace(0, 1, n_bins + 1)
+    progress_bin = pd.cut(
+        df["RaceProgress"], bins=bins, include_lowest=True, labels=False
+    ).astype("int16")
+    df["compound_x_progress_bin"] = (
+        df["Compound"].astype(str) + "_b" + progress_bin.astype(str)
+    ).astype("category")
+    return df
+
+
+# Block 3: sklearn TargetEncoder(cv=5) — IMPLEMENTED in train.py _apply_target_encoding()
+#   (kept inside fold loop because TE is target-dependent → must be fit-per-fold)
+#   v2 result: NEGATIVE on this feature set (redundant with LGB native cat).
+#
+# Block 4: digit extraction (yunsuxiaozi pattern) — TODO
