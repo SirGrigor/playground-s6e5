@@ -36,4 +36,4 @@
 - ⚠ multiple_changes(n=6) — attribution ambiguous, consider ablation
 
 ## Human notes
-_None yet. Add with:_  `python -m src.diary flag v1_lgb "..."`
+- [2026-05-12T18:56:53+00:00] LB public: 0.94285 (Kaggle 2026-05-12). CV-LB gap +0.00049, holdout-LB gap +0.00094 — all tight, no leakage. Below top-1 0.95480 by 0.0119, but solid baseline.
