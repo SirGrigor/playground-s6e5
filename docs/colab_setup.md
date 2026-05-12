@@ -2,20 +2,32 @@
 
 The first Colab run requires manual data upload to Drive. After that, every subsequent run reuses the same data.
 
+## Step 0 — DISABLE CSV-to-Sheets conversion in Drive (critical, one-time)
+
+Drive's default setting converts uploaded CSV files into Google Sheets documents. This breaks `pd.read_csv()` in Colab because there's no actual `.csv` file on disk — only a Sheets object.
+
+1. Open <https://drive.google.com/drive/settings>
+2. Find **"Convert uploads"** under "General"
+3. **UNCHECK** "Convert uploaded files to Google Docs editor format"
+4. Save
+
+Without this step, the Colab run will fail at cell 4 (Sync data) with FileNotFoundError.
+
 ## Step 1 — Verify Drive folder structure
 
 Drive folder: <https://drive.google.com/drive/folders/1N6PFShEtMj2KSYWxaQQz-6Kro1CTLilh>
 
-Inside it, create this structure (manually via the Drive UI):
+**Verified location** (Drive MCP, 2026-05-12): `MyDrive/Colab Notebooks/kaggle/s6e5`
+
+Inside `s6e5/`, create this structure (manually via the Drive UI):
 
 ```
-<your-drive-folder>/
-└── s6e5/
-    ├── data/
-    │   ├── raw/        ← upload here
-    │   └── external/   ← upload here
-    ├── probs/          ← created automatically by Colab runs
-    └── submissions/    ← created automatically by Colab runs
+MyDrive/Colab Notebooks/kaggle/s6e5/
+├── data/
+│   ├── raw/        ← upload here
+│   └── external/   ← upload here
+├── probs/          ← created automatically by Colab runs
+└── submissions/    ← created automatically by Colab runs
 ```
 
 ## Step 2 — Upload competition data to Drive
@@ -48,10 +60,20 @@ Alternative if you have `gdrive` or `rclone` configured: scriptable upload.
 Open `notebooks/colab_runner.ipynb` in Colab. The first cell has:
 
 ```python
-DRIVE_S6E5 = '/content/drive/MyDrive/kaggle/s6e5'   # ← EDIT IF DIFFERENT
+DRIVE_S6E5 = '/content/drive/MyDrive/Colab Notebooks/kaggle/s6e5'
 ```
 
-Adjust this path to match where your s6e5 folder lives in Drive.
+This matches the verified Drive location. No edit needed unless you reorganize the folder later.
+
+**Sanity check after running cell 1** — the `ls -la` output should show real `.csv` files:
+
+```
+-rw------- 1 root root 53714242 May 12 ... train.csv
+-rw------- 1 root root 22312035 May 12 ... test.csv
+...
+```
+
+If you see no `.csv` extension and zero file size, the files were converted to Sheets — go back to Step 0.
 
 ## Step 4 — Run the v1 baseline
 
