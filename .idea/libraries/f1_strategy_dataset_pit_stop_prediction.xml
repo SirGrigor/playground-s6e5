@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="f1-strategy-dataset-pit-stop-prediction">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/data/external/f1-strategy-dataset-pit-stop-prediction.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

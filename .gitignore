@@ -1,0 +1,28 @@
+# venv
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.pytest_cache/
+
+# data — files too big for git; downloaded via kaggle CLI
+data/raw/
+data/external/
+
+# reference notebooks (downloaded from kaggle, not our code)
+recon_notebooks/
+
+# artifacts — regeneratable
+probs/
+submissions/
+models/
+catboost_info/
+
+# scratch
+/tmp_*
+*.log
+*.swp
+.DS_Store
+
+# only the split definition is tracked, not the data itself
+!data/splits/
