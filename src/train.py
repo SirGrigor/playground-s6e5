@@ -205,6 +205,92 @@ def _train_lgb(
     }
 
 
+def _xgb_defaults(use_gpu: bool) -> dict:
+    """XGBoost defaults — tuned for tabular binary classification, ~350K rows.
+
+    Different from LGB: XGB uses level-wise growth + ordinal categorical encoding
+    (with enable_categorical=True since XGB 2.0). Decision boundaries genuinely
+    differ from LGB's leaf-wise + Fisher splits → real diversity for blending later.
+    """
+    params = {
+        "objective": "binary:logistic",
+        "eval_metric": "auc",
+        "learning_rate": 0.05,
+        "max_depth": 6,
+        "min_child_weight": 5,
+        "subsample": 0.85,
+        "colsample_bytree": 0.85,
+        "reg_lambda": 1.0,
+        "n_estimators": 5000,
+        "tree_method": "hist",
+        "enable_categorical": True,
+        "verbosity": 0,
+        "random_state": MODEL_SEED,
+    }
+    if use_gpu:
+        params["device"] = "cuda"
+    return params
+
+
+def _train_xgb(
+    X_pool: pd.DataFrame,
+    y_pool: np.ndarray,
+    X_holdout: pd.DataFrame,
+    X_test: pd.DataFrame,
+    feature_cols: list[str],
+    categorical_cols: list[str],
+    params: dict,
+    n_folds: int,
+    cv_seed: int,
+    early_stopping_rounds: int,
+) -> dict:
+    import xgboost as xgb
+
+    cv = make_cv()
+    oof = np.zeros(len(X_pool))
+    holdout_pred_folds = np.zeros((n_folds, len(X_holdout)))
+    test_pred_folds = np.zeros((n_folds, len(X_test)))
+    fold_aucs: list[float] = []
+
+    # Align categorical dictionaries so XGB sees consistent codes across folds
+    X_pool, X_holdout, X_test = _align_category_codes(
+        X_pool, X_holdout, X_test, cat_cols=categorical_cols
+    )
+
+    X_pool_view = X_pool[feature_cols]
+    X_holdout_view = X_holdout[feature_cols]
+    X_test_view = X_test[feature_cols]
+
+    # XGB needs early_stopping_rounds in the constructor (no callback API like LGB)
+    xgb_params = {**params, "early_stopping_rounds": early_stopping_rounds}
+
+    for fold, (tr_idx, val_idx) in enumerate(cv.split(np.arange(len(X_pool)), y_pool)):
+        Xtr, ytr = X_pool_view.iloc[tr_idx], y_pool[tr_idx]
+        Xva, yva = X_pool_view.iloc[val_idx], y_pool[val_idx]
+        model = xgb.XGBClassifier(**xgb_params)
+        model.fit(
+            Xtr, ytr,
+            eval_set=[(Xva, yva)],
+            verbose=False,
+        )
+        val_pred = model.predict_proba(Xva)[:, 1]
+        oof[val_idx] = val_pred
+        fold_auc = roc_auc_score(yva, val_pred)
+        fold_aucs.append(fold_auc)
+        holdout_pred_folds[fold] = model.predict_proba(X_holdout_view)[:, 1]
+        test_pred_folds[fold] = model.predict_proba(X_test_view)[:, 1]
+        print(f"  fold {fold+1}/{n_folds}  AUC={fold_auc:.5f}  best_iter={model.best_iteration}")
+
+    holdout_pred = holdout_pred_folds.mean(axis=0)
+    test_pred = test_pred_folds.mean(axis=0)
+    return {
+        "oof_pred": oof,
+        "holdout_pred": holdout_pred,
+        "test_pred": test_pred,
+        "fold_aucs": fold_aucs,
+    }
+
+
 def train_variant(
     *,
     algo: str,
@@ -225,10 +311,9 @@ def train_variant(
     """Train one variant via 5-fold CV; return OOF + holdout + test predictions.
 
     Args:
+        algo: 'lgb' or 'xgb' (more to come: catboost, histgb, realmlp)
         te_cols: list of categorical columns to fold-safely target-encode
-            (added as TE_<colname> numeric features)
-        te_pairs: list of (col_a, col_b) tuples — builds 'col_a_x_col_b' pair
-            then target-encodes that pair (added as TE_<a>_x_<b>)
+        te_pairs: list of (col_a, col_b) tuples to fold-safely target-encode
     """
     categorical_cols = categorical_cols or []
     t0 = time.time()
@@ -241,6 +326,17 @@ def train_variant(
             params=params, n_folds=n_folds, cv_seed=cv_seed,
             early_stopping_rounds=early_stopping_rounds,
             te_cols=te_cols, te_pairs=te_pairs,
+        )
+    elif algo == "xgb":
+        params = {**_xgb_defaults(use_gpu), **(params or {})}
+        # XGB doesn't have fold-safe TE built into our pipeline yet — guard
+        if te_cols or te_pairs:
+            raise NotImplementedError("TE for XGB not implemented yet (would need fold-safe loop).")
+        result = _train_xgb(
+            X_pool=X_pool, y_pool=y_pool, X_holdout=X_holdout, X_test=X_test,
+            feature_cols=feature_cols, categorical_cols=categorical_cols,
+            params=params, n_folds=n_folds, cv_seed=cv_seed,
+            early_stopping_rounds=early_stopping_rounds,
         )
     else:
         raise NotImplementedError(f"algo={algo!r} not yet implemented in train_variant().")
