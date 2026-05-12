@@ -6,6 +6,7 @@ Source of truth: `experiments.jsonl` (git-tracked, append-only). Auto-regenerate
 
 | ver | parent | predicted Δ | actual Δ | holdout AUC | OOF AUC | gap | hypothesis | flags |
 |---|---|---|---|---|---|---|---|---|
+| [v1_lgb](versions/v1_lgb.md) | `—` | +0.00000 | — | 0.94379 | 0.94236 | +0.00143 | Plain LGB on raw + Block 1 (compound features + pit-window + tyre-l... | ⚠ multiple_changes |
 
 ## Read more
 - Per-version write-ups: `docs/versions/<vN>.md`
