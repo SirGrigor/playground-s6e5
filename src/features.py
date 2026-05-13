@@ -120,5 +120,65 @@ def add_compound_x_progress_bin(df, n_bins=40, inplace=False):
 # Block 3: sklearn TargetEncoder(cv=5) — IMPLEMENTED in train.py _apply_target_encoding()
 #   (kept inside fold loop because TE is target-dependent → must be fit-per-fold)
 #   v2 result: NEGATIVE on this feature set (redundant with LGB native cat).
-#
-# Block 4: digit extraction (yunsuxiaozi pattern) — TODO
+
+
+# =========================================================================
+# Block 4 — Digit-extraction features (yunsuxiaozi pattern).
+# Extracts the decimal digit of each numeric feature at specific positions.
+# Examples:  LapTime=78.491 → digit(-1)=4, digit(-2)=9, digit(-3)=1
+#            TyreLife=27    → digit(0)=7, digit(1)=2
+# Why it might help: LGB partitions continuous values at thresholds, but it
+# CANNOT discover modular-arithmetic patterns (e.g. "all values ending in 7").
+# If the synthetic data generator quantized values to specific precisions,
+# digit features expose orthogonal information trees can't build implicitly.
+# =========================================================================
+
+
+# Per-feature useful digit positions (chosen by value range)
+# k >= 0: integer-part digit (k=0 → ones, k=1 → tens, k=2 → hundreds)
+# k < 0: decimal-part digit (k=-1 → tenths, k=-2 → hundredths, k=-3 → thousandths)
+DIGIT_POSITIONS = {
+    "TyreLife":               [0, 1],
+    "LapNumber":              [0, 1],
+    "LapTime (s)":            [-2, -1, 0, 1],
+    "LapTime_Delta":          [-2, -1, 0, 1],
+    "Cumulative_Degradation": [-2, -1, 0, 1, 2],
+    "RaceProgress":           [-3, -2, -1],
+    "Position_Change":        [0],
+}
+
+
+def _digit_at(arr: np.ndarray, k: int) -> np.ndarray:
+    """Extract decimal digit at position k.
+
+    k=0 → ones, k=1 → tens, k=-1 → tenths, k=-2 → hundredths.
+
+    Uses np.round AFTER scaling, per S6E4 L10 lesson (IEEE 754 imprecision).
+    Plain `(val // 10**k) % 10` failed 60% of the time on S6E4 due to 0.01
+    being inexact in float64; this version rounds before integer cast.
+    """
+    if k >= 0:
+        # Integer part, position k from ones
+        return ((np.floor(arr).astype("int64") // (10 ** k)) % 10).astype("int8")
+    else:
+        # Decimal part — shift left by -k places, round to handle float imprecision
+        shift = -k
+        scaled = np.round(arr * (10 ** shift)).astype("int64")
+        return (scaled % 10).astype("int8")
+
+
+def add_digit_features(df, inplace=False, positions=None):
+    """Add digit-extraction features per DIGIT_POSITIONS config.
+
+    Adds columns named e.g. 'LapTime (s)_digit-1' for the tenths digit of LapTime.
+    Total: 21 new features (sum of DIGIT_POSITIONS list lengths) given the default config.
+    """
+    df = df if inplace else df.copy()
+    positions = positions or DIGIT_POSITIONS
+    for col, ks in positions.items():
+        if col not in df.columns:
+            continue
+        arr = df[col].to_numpy()
+        for k in ks:
+            df[f"{col}_digit{k}"] = _digit_at(arr, k)
+    return df
