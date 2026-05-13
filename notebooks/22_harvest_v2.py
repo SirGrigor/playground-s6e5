@@ -57,13 +57,29 @@ SLEEP_BETWEEN_DOWNLOADS = 0.5  # be polite to Kaggle
 def list_top_kernels(comp: str, n: int) -> list[dict[str, str]]:
     """Run `kaggle kernels list -v` and parse the CSV output."""
     print(f"Listing top {n} kernels for {comp}...")
+    # Diagnostic: check env vars before calling CLI
+    import os as _os
+    has_user = bool(_os.environ.get('KAGGLE_USERNAME'))
+    has_key = bool(_os.environ.get('KAGGLE_KEY'))
+    has_kaggle_json = _os.path.exists(_os.path.expanduser('~/.kaggle/kaggle.json'))
+    print(f"  auth: KAGGLE_USERNAME={'set' if has_user else 'MISSING'}, "
+          f"KAGGLE_KEY={'set' if has_key else 'MISSING'}, "
+          f"~/.kaggle/kaggle.json={'exists' if has_kaggle_json else 'missing'}")
+
     result = subprocess.run(
         ["kaggle", "kernels", "list", "--competition", comp,
          "--sort-by", "voteCount", "--page-size", str(n), "-v"],
         capture_output=True, text=True, timeout=60,
     )
     if result.returncode != 0:
-        raise RuntimeError(f"kaggle CLI failed: {result.stderr}")
+        # Print BOTH stderr and stdout — kaggle CLI sometimes writes errors to stdout
+        msg = []
+        if result.stderr.strip():
+            msg.append(f"stderr: {result.stderr.strip()}")
+        if result.stdout.strip():
+            msg.append(f"stdout: {result.stdout.strip()}")
+        msg.append(f"exit code: {result.returncode}")
+        raise RuntimeError("kaggle CLI failed — " + " | ".join(msg))
     # Skip the deprecation warning line if present
     lines = [l for l in result.stdout.splitlines() if not l.startswith("Warning")]
     reader = csv.DictReader(lines)
