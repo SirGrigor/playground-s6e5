@@ -291,6 +291,113 @@ def _train_xgb(
     }
 
 
+def _realmlp_defaults(use_gpu: bool) -> dict:
+    """pytabkit RealMLP_TD_Classifier defaults — derived from yekenot's top-voted
+    public S6E5 notebook (n_ens=24 → 8 for cost). Different architecture than trees:
+    neural net with PLR embeddings + learned categorical embeddings. Decision
+    boundaries genuinely differ → low correlation with LGB/XGB → big blend payoff.
+    """
+    return {
+        "random_state": MODEL_SEED,
+        "verbosity": 1,
+        "val_metric_name": "1-auc_ovr",
+
+        # Ensembling — yekenot used n_ens=24, we use 8 for cost/quality balance
+        "n_ens": 8,
+        "n_epochs": 5,
+        "batch_size": 1024,
+        "use_early_stopping": False,
+
+        # Optimization
+        "lr": 0.03,
+        "wd": 0.018,
+        "sq_mom": 0.98,
+        "lr_sched": "lin_cos_log_15",
+        "first_layer_lr_factor": 0.25,
+
+        # Architecture
+        "embedding_size": 6,
+        "max_one_hot_cat_size": 18,
+        "hidden_sizes": [512, 256, 128],
+        "act": "silu",
+        "p_drop": 0.05,
+        "p_drop_sched": "expm4t",
+
+        # PLR (Periodic Linear ReLU) embeddings — the key reason RealMLP_TD works
+        "plr_hidden_1": 16,
+        "plr_hidden_2": 8,
+        "plr_act_name": "gelu",
+        "plr_lr_factor": 0.1151,
+        "plr_sigma": 2.33,
+
+        # Regularization
+        "ls_eps": 0.01,
+        "ls_eps_sched": "sqrt_cos",
+
+        # Transforms
+        "add_front_scale": False,
+        "bias_init_mode": "neg-uniform-dynamic-2",
+        "tfms": ["one_hot", "median_center", "robust_scale",
+                 "smooth_clip", "embedding", "l2_normalize"],
+    }
+
+
+def _train_realmlp(
+    X_pool: pd.DataFrame,
+    y_pool: np.ndarray,
+    X_holdout: pd.DataFrame,
+    X_test: pd.DataFrame,
+    feature_cols: list[str],
+    categorical_cols: list[str],
+    params: dict,
+    n_folds: int,
+    cv_seed: int,
+) -> dict:
+    from pytabkit import RealMLP_TD_Classifier
+
+    cv = make_cv()
+    oof = np.zeros(len(X_pool))
+    holdout_pred_folds = np.zeros((n_folds, len(X_holdout)))
+    test_pred_folds = np.zeros((n_folds, len(X_test)))
+    fold_aucs: list[float] = []
+
+    # Align category dicts so pytabkit's embedding sees consistent codes
+    X_pool, X_holdout, X_test = _align_category_codes(
+        X_pool, X_holdout, X_test, cat_cols=categorical_cols
+    )
+
+    X_pool_view = X_pool[feature_cols]
+    X_holdout_view = X_holdout[feature_cols]
+    X_test_view = X_test[feature_cols]
+
+    for fold, (tr_idx, val_idx) in enumerate(cv.split(np.arange(len(X_pool)), y_pool)):
+        Xtr = X_pool_view.iloc[tr_idx]
+        ytr = y_pool[tr_idx]
+        Xva = X_pool_view.iloc[val_idx]
+        yva = y_pool[val_idx]
+
+        model = RealMLP_TD_Classifier(**params)
+        # pytabkit's fit takes val set as positional args (different from sklearn)
+        model.fit(Xtr, ytr, Xva, yva)
+
+        val_pred = model.predict_proba(Xva)[:, 1]
+        oof[val_idx] = val_pred
+        fold_auc = roc_auc_score(yva, val_pred)
+        fold_aucs.append(fold_auc)
+        holdout_pred_folds[fold] = model.predict_proba(X_holdout_view)[:, 1]
+        test_pred_folds[fold] = model.predict_proba(X_test_view)[:, 1]
+        print(f"  fold {fold+1}/{n_folds}  AUC={fold_auc:.5f}")
+
+    holdout_pred = holdout_pred_folds.mean(axis=0)
+    test_pred = test_pred_folds.mean(axis=0)
+    return {
+        "oof_pred": oof,
+        "holdout_pred": holdout_pred,
+        "test_pred": test_pred,
+        "fold_aucs": fold_aucs,
+    }
+
+
 def train_variant(
     *,
     algo: str,
@@ -337,6 +444,15 @@ def train_variant(
             feature_cols=feature_cols, categorical_cols=categorical_cols,
             params=params, n_folds=n_folds, cv_seed=cv_seed,
             early_stopping_rounds=early_stopping_rounds,
+        )
+    elif algo == "realmlp":
+        params = {**_realmlp_defaults(use_gpu), **(params or {})}
+        if te_cols or te_pairs:
+            raise NotImplementedError("TE for RealMLP not wired yet.")
+        result = _train_realmlp(
+            X_pool=X_pool, y_pool=y_pool, X_holdout=X_holdout, X_test=X_test,
+            feature_cols=feature_cols, categorical_cols=categorical_cols,
+            params=params, n_folds=n_folds, cv_seed=cv_seed,
         )
     else:
         raise NotImplementedError(f"algo={algo!r} not yet implemented in train_variant().")
