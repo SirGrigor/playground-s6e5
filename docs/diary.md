@@ -13,6 +13,7 @@ Source of truth: `experiments.jsonl` (git-tracked, append-only). Auto-regenerate
 | [v5_blend_lgb_xgb](versions/v5_blend_lgb_xgb.md) | `v1_lgb` | +0.00080 | +0.00033 | 0.94412 | 0.94321 | +0.00091 | Simple average of v1 LGB + v4 XGB. Both tied solo (all metrics with... | ⚠ prediction_undershot, multiple_changes |
 | [v6_lgb_digits](versions/v6_lgb_digits.md) | `v1_lgb` | +0.00150 | -0.00043 | 0.94335 | 0.94178 | +0.00157 | Block 4: 21 digit-extraction int8 features (yunsuxiaozi pattern) ac... | ⚠ prediction_sign_mismatch |
 | [v7_realmlp](versions/v7_realmlp.md) | `v1_lgb` | +0.00050 | +0.00413 | 0.94792 | 0.94748 | +0.00044 | RealMLP_TD (pytabkit) on Block 1 — genuine model-class diversity. E... | ⚠ prediction_overshot, multiple_changes |
+| [v8_blend_3way](versions/v8_blend_3way.md) | `v7_realmlp` | +0.00150 | +0.00011 | 0.94803 | 0.94768 | +0.00035 | Weighted 3-way blend of v1 LGB + v4 XGB + v7 RealMLP. v7 solo wins ... | ⚠ prediction_undershot, multiple_changes |
 
 ## Read more
 - Per-version write-ups: `docs/versions/<vN>.md`
