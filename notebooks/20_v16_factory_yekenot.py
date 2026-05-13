@@ -102,6 +102,7 @@ def main(subsample: int | None, gpu: bool):
         )
 
     print(f"\n--- Running factory ({n_variants} variants) ---")
+    # cv_seed is per-variant (set by sample_variants); use_gpu is auto-detected by pytabkit
     results = run_factory(
         variants=variants,
         X_pool=pool_fe,
@@ -111,8 +112,6 @@ def main(subsample: int | None, gpu: bool):
         feature_cols=feature_cols,
         categorical_cols=cat_feats,
         n_folds=N_FOLDS,
-        cv_seed=CV_SEED,
-        use_gpu=gpu,
     )
 
     print("\n--- Per-variant ---")
