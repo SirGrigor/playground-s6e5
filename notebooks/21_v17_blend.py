@@ -1,8 +1,13 @@
-"""v17 — Final blend candidate selection (local CPU, no compute).
+"""v17 — Final blend candidate selection (CPU only, runs on Colab OR local).
 
-Runs AFTER v14b/v15/v16 have synced back from Colab. Compares all available
+Runs AFTER v14b/v15/v16 have produced probs. Compares all available
 candidates by holdout AUC and produces blend variants. Outputs a leaderboard
 of candidates with predicted LB → user picks the single best to submit.
+
+Designed to be infra-agnostic:
+  - On Colab: probs/ live in /content from the same session; auto-fetches
+    yekenot's submission via kaggle CLI if not already present.
+  - On local: same, plus picks up v14 (only on local, never run on Colab).
 
 Logic:
   1. Load all available OOFs + holdouts + tests from probs/
@@ -98,8 +103,23 @@ def main() -> int:
     print()
 
     # Yekenot (test-only — no aligned OOF for our pool)
+    # Auto-fetch via kaggle CLI if not present (Colab-friendly).
     yek_sub_path = ROOT / "harvest/v13/yekenot_ensemble/submission.csv"
     yekenot_test = None
+    if not yek_sub_path.exists():
+        print(f"yekenot submission not found at {yek_sub_path} — attempting kaggle CLI fetch...")
+        import subprocess
+        yek_sub_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            subprocess.run(
+                ["kaggle", "kernels", "output", "yekenot/ps-s6-e5-realmlp-pytabkit",
+                 "-p", str(yek_sub_path.parent)],
+                check=True, capture_output=True, text=True, timeout=120,
+            )
+            print(f"  fetched to {yek_sub_path.parent}")
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError) as exc:
+            print(f"  ✗ fetch failed ({type(exc).__name__}) — proceeding without yekenot mix")
+
     if yek_sub_path.exists():
         yekenot_test = pd.read_csv(yek_sub_path).set_index("id").loc[test[ID]]["PitNextLap"].to_numpy()
         print(f"yekenot test predictions loaded ({len(yekenot_test):,} rows)\n")
