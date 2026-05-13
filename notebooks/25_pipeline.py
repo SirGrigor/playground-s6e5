@@ -245,7 +245,7 @@ def run_preflight() -> dict:
 # =========================================================================
 
 def restore_from_drive() -> None:
-    """Copy probs/ and harvest/v18 from Drive to /content."""
+    """Copy probs/ and harvest/v18 from Drive to /content. Merge if local exists."""
     drive_probs = COLAB_DRIVE_BASE / "probs"
     if drive_probs.exists():
         PROBS.mkdir(parents=True, exist_ok=True)
@@ -256,11 +256,21 @@ def restore_from_drive() -> None:
             if not dst_dir.exists():
                 shutil.copytree(src_dir, dst_dir)
 
+    # harvest/v18: merge from Drive into local (handles partial-local case where
+    # only manifest.json was present without kernel subdirs).
     drive_v18 = COLAB_DRIVE_BASE / "harvest" / "v18"
     local_v18 = ROOT / "harvest" / "v18"
-    if drive_v18.exists() and not local_v18.exists():
-        local_v18.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copytree(drive_v18, local_v18)
+    if drive_v18.exists():
+        local_v18.mkdir(parents=True, exist_ok=True)
+        for src in drive_v18.iterdir():
+            dst = local_v18 / src.name
+            if src.is_dir():
+                if not dst.exists():
+                    shutil.copytree(src, dst)
+                # else: subdir already present, skip (avoid re-copying large files)
+            else:
+                if not dst.exists() or dst.stat().st_size != src.stat().st_size:
+                    shutil.copyfile(src, dst)
 
 
 # =========================================================================
