@@ -1,0 +1,35 @@
+[
+  {
+    "slug": "sidcodegg/tabpfn-is-all-you-need",
+    "claimed_lb": null,
+    "tag": "tabpfn",
+    "valid": false,
+    "issues": [
+      "no CSV in kernel output"
+    ]
+  },
+  {
+    "slug": "anthonytherrien/predicting-f1-pit-stops-nn-residual-network",
+    "claimed_lb": null,
+    "tag": "nn_residual",
+    "valid": true,
+    "issues": [],
+    "pred_col": "PitNextLap",
+    "min": 0.0001418441192027,
+    "max": 0.9930449274355296,
+    "mean": 0.20707639625696053,
+    "downloaded_csv": "harvest/v13/nn_residual/submission.csv"
+  },
+  {
+    "slug": "rohit8527kmr7518/ps-s6e5-catboost-10-fold-cv",
+    "claimed_lb": null,
+    "tag": "catboost_10fold",
+    "valid": true,
+    "issues": [],
+    "pred_col": "PitNextLap",
+    "min": 9.7634314e-05,
+    "max": 0.99698037,
+    "mean": 0.27262276132471813,
+    "downloaded_csv": "harvest/v13/catboost_10fold/submission.csv"
+  }
+]
