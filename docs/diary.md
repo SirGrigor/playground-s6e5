@@ -15,6 +15,8 @@ Source of truth: `experiments.jsonl` (git-tracked, append-only). Auto-regenerate
 | [v7_realmlp](versions/v7_realmlp.md) | `v1_lgb` | +0.00050 | +0.00413 | 0.94792 | 0.94748 | +0.00044 | RealMLP_TD (pytabkit) on Block 1 — genuine model-class diversity. E... | ⚠ prediction_overshot, multiple_changes |
 | [v8_blend_3way](versions/v8_blend_3way.md) | `v7_realmlp` | +0.00150 | +0.00011 | 0.94803 | 0.94768 | +0.00035 | Weighted 3-way blend of v1 LGB + v4 XGB + v7 RealMLP. v7 solo wins ... | ⚠ prediction_undershot, multiple_changes |
 | [v9_realmlp_big](versions/v9_realmlp_big.md) | `v7_realmlp` | +0.00100 | +0.00016 | 0.94808 | 0.94790 | +0.00018 | Single change: n_ens 8 → 24. Same architecture, transforms, lr sche... | ⚠ prediction_undershot, multiple_changes |
+| [v10_tabm](versions/v10_tabm.md) | `v9_realmlp_big` | +0.00000 | -0.00098 | 0.94710 | 0.94660 | +0.00050 | TabM_D (pytabkit) — different neural architecture than RealMLP. Sam... | ⚠ multiple_changes |
+| [v11_blend_4way](versions/v11_blend_4way.md) | `v9_realmlp_big` | +0.00100 | +0.00025 | 0.94833 | 0.94820 | +0.00013 | 4-way blend of v9 RealMLP big + v10 TabM_D + v1 LGB + v4 XGB. Tests... | ⚠ prediction_undershot, multiple_changes |
 
 ## Read more
 - Per-version write-ups: `docs/versions/<vN>.md`
