@@ -433,12 +433,15 @@ def _train_realmlp(
     cv_seed: int,
     te_cols: list[str] | None = None,
     te_pairs: list[tuple[str, str]] | None = None,
+    external_X: pd.DataFrame | None = None,
+    external_y: np.ndarray | None = None,
 ) -> dict:
     from pytabkit import RealMLP_TD_Classifier
 
     te_cols = te_cols or []
     te_pairs = te_pairs or []
     use_te = bool(te_cols or te_pairs)
+    use_external = external_X is not None and external_y is not None
 
     cv = make_cv()
     oof = np.zeros(len(X_pool))
@@ -446,10 +449,16 @@ def _train_realmlp(
     test_pred_folds = np.zeros((n_folds, len(X_test)))
     fold_aucs: list[float] = []
 
-    # Align category dicts so pytabkit's embedding sees consistent codes
-    X_pool, X_holdout, X_test = _align_category_codes(
-        X_pool, X_holdout, X_test, cat_cols=categorical_cols
-    )
+    # Align category dicts so pytabkit's embedding sees consistent codes.
+    # If external data is provided, include it in the alignment.
+    if use_external:
+        X_pool, X_holdout, X_test, external_X = _align_category_codes(
+            X_pool, X_holdout, X_test, external_X, cat_cols=categorical_cols
+        )
+    else:
+        X_pool, X_holdout, X_test = _align_category_codes(
+            X_pool, X_holdout, X_test, cat_cols=categorical_cols
+        )
 
     for fold, (tr_idx, val_idx) in enumerate(cv.split(np.arange(len(X_pool)), y_pool)):
         Xtr = X_pool.iloc[tr_idx].copy()
@@ -458,6 +467,12 @@ def _train_realmlp(
         yva = y_pool[val_idx]
         Xho = X_holdout.copy()
         Xte = X_test.copy()
+
+        # External data merge — train side only, val stays pure synthetic.
+        # OOF reporting still aligned to pool rows only (val_idx from pool's CV split).
+        if use_external:
+            Xtr = pd.concat([Xtr, external_X], axis=0, ignore_index=True)
+            ytr = np.concatenate([ytr, external_y])
 
         fold_feature_cols = list(feature_cols)
         if use_te:
@@ -509,6 +524,8 @@ def train_variant(
     early_stopping_rounds: int = 100,
     te_cols: list[str] | None = None,
     te_pairs: list[tuple[str, str]] | None = None,
+    external_X: pd.DataFrame | None = None,
+    external_y: np.ndarray | None = None,
 ) -> dict[str, Any]:
     """Train one variant via 5-fold CV; return OOF + holdout + test predictions.
 
@@ -516,6 +533,10 @@ def train_variant(
         algo: 'lgb' or 'xgb' (more to come: catboost, histgb, realmlp)
         te_cols: list of categorical columns to fold-safely target-encode
         te_pairs: list of (col_a, col_b) tuples to fold-safely target-encode
+        external_X / external_y: optional out-of-distribution training data
+            merged into each fold's train side only (val stays pure).
+            Currently supported by RealMLP only. Use only with explicit
+            override of docs/pitfalls.md:44.
     """
     categorical_cols = categorical_cols or []
     t0 = time.time()
@@ -547,6 +568,7 @@ def train_variant(
             feature_cols=feature_cols, categorical_cols=categorical_cols,
             params=params, n_folds=n_folds, cv_seed=cv_seed,
             te_cols=te_cols, te_pairs=te_pairs,
+            external_X=external_X, external_y=external_y,
         )
     elif algo == "tabm":
         params = {**_tabm_defaults(use_gpu), **(params or {})}
