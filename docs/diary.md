@@ -12,6 +12,7 @@ Source of truth: `experiments.jsonl` (git-tracked, append-only). Auto-regenerate
 | [v4_xgb](versions/v4_xgb.md) | `v1_lgb` | +0.00100 | -0.00003 | 0.94375 | 0.94263 | +0.00112 | v2 and v3 proved LGB on Block 1 is plateaued. Switching to XGBoost ... | ⚠ prediction_sign_mismatch, multiple_changes |
 | [v5_blend_lgb_xgb](versions/v5_blend_lgb_xgb.md) | `v1_lgb` | +0.00080 | +0.00033 | 0.94412 | 0.94321 | +0.00091 | Simple average of v1 LGB + v4 XGB. Both tied solo (all metrics with... | ⚠ prediction_undershot, multiple_changes |
 | [v6_lgb_digits](versions/v6_lgb_digits.md) | `v1_lgb` | +0.00150 | -0.00043 | 0.94335 | 0.94178 | +0.00157 | Block 4: 21 digit-extraction int8 features (yunsuxiaozi pattern) ac... | ⚠ prediction_sign_mismatch |
+| [v7_realmlp](versions/v7_realmlp.md) | `v1_lgb` | +0.00050 | +0.00413 | 0.94792 | 0.94748 | +0.00044 | RealMLP_TD (pytabkit) on Block 1 — genuine model-class diversity. E... | ⚠ prediction_overshot, multiple_changes |
 
 ## Read more
 - Per-version write-ups: `docs/versions/<vN>.md`
