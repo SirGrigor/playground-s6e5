@@ -1,0 +1,100 @@
+[
+  {
+    "slug": "yekenot/ps-s6-e5-realmlp-pytabkit",
+    "title": "PS|S6|E5: RealMLP \u00b7 PyTabKit",
+    "votes": 93,
+    "tag": "yekenot_ps-s6-e5-realmlp-pytabkit",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": "harvest/v18/yekenot_ps-s6-e5-realmlp-pytabkit/oof_preds.csv",
+      "submission": "harvest/v18/yekenot_ps-s6-e5-realmlp-pytabkit/submission.csv",
+      "log": "harvest/v18/yekenot_ps-s6-e5-realmlp-pytabkit/ps-s6-e5-realmlp-pytabkit.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.1988529954650374,
+      "min": 7.790359916270972e-06,
+      "max": 0.9984382539987564
+    },
+    "oof_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows_in_pool": 351312,
+      "n_rows_total": 439140,
+      "auc_on_our_pool": 0.9540688308347735
+    },
+    "rho_with_anchor": 0.994568124200346,
+    "verdict": "INCLUDE-OOF"
+  },
+  {
+    "slug": "kospintr/pitstop-catb-hgbc-xgb-lgbm-realmlp-baseline",
+    "title": "PitStop | CatB/HGBC/XGB/LGBM/RealMLP | Baseline",
+    "votes": 67,
+    "tag": "kospintr_pitstop-catb-hgbc-xgb-lgbm-realmlp-baseline",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/kospintr_pitstop-catb-hgbc-xgb-lgbm-realmlp-baseline/submission.csv",
+      "log": "harvest/v18/kospintr_pitstop-catb-hgbc-xgb-lgbm-realmlp-baseline/pitstop-catb-hgbc-xgb-lgbm-realmlp-baseline.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.24741780904940663,
+      "min": 2.1790424248147788e-05,
+      "max": 0.9953754541473508
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.977899339713316,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "flexonafft/f1-submission-blender-0-954",
+    "title": "F1 | Submission Blender | 0.954+",
+    "votes": 65,
+    "tag": "flexonafft_f1-submission-blender-0-954",
+    "claimed_lb": 0.954,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/flexonafft_f1-submission-blender-0-954/outputs/pro/t02.csv",
+      "log": "harvest/v18/flexonafft_f1-submission-blender-0-954/f1-submission-blender-0-954.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.20713181572061484,
+      "min": 0.0001422729870576,
+      "max": 0.9930909524945428
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9942678664460896,
+    "verdict": "INCLUDE-TEST"
+  }
+]

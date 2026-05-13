@@ -18,11 +18,16 @@ submissions/
 models/
 catboost_info/
 
-# harvested public kernel outputs — large CSVs, re-fetch via 15_v13_harvest.py
+# harvested public kernel outputs — large CSVs, re-fetch via harvester scripts
 harvest/v13/*/
 # but keep the small metadata + verdict report
 !harvest/v13/manifest.json
 !harvest/v13/diversity_report.md
+
+# v18 — bulk harvester output
+harvest/v18/*/
+!harvest/v18/manifest.json
+!harvest/v18/audit.md
 
 # scratch
 /tmp_*
