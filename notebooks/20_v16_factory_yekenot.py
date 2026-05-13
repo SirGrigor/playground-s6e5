@@ -114,24 +114,29 @@ def main(subsample: int | None, gpu: bool):
         n_folds=N_FOLDS,
     )
 
-    print("\n--- Per-variant ---")
-    for r in results:
-        print(f"  {r['name']:<32}  OOF={r['oof_auc']:.5f}  holdout={r['holdout_auc']:.5f}  rt={r['runtime_sec']:.1f}s")
-
-    # Aggregate via Nelder-Mead on holdout AUC
-    print("\n--- Aggregating ---")
+    print("\n--- Per-variant (holdout AUC computed locally — run_variant returns predictions, not holdout AUC) ---")
+    from sklearn.metrics import roc_auc_score
     y_holdout = holdout_fe[TARGET].astype(int).to_numpy()
+    per_variant = []
+    for r in results:
+        ho_auc = roc_auc_score(y_holdout, r["holdout_pred"])
+        per_variant.append({"name": r["variant"].name, "oof_auc": r["oof_auc"], "holdout_auc": ho_auc, "runtime_sec": r["runtime_sec"]})
+        print(f"  {r['variant'].name:<32}  OOF={r['oof_auc']:.5f}  holdout={ho_auc:.5f}  rt={r['runtime_sec']:.1f}s")
+
+    # Aggregate via Nelder-Mead — aggregate() returns its own oof_auc/holdout_auc
+    print("\n--- Aggregating ---")
     agg = aggregate(
         results=results,
         y_pool=pool_fe[TARGET].astype(int).to_numpy(),
         y_holdout=y_holdout,
         method="auto",
     )
-    blend_holdout = auc(y_holdout, agg["holdout_pred"])
-    blend_oof = auc(pool_fe[TARGET].astype(int).to_numpy(), agg["oof_pred"])
+    blend_oof = agg["oof_auc"]
+    blend_holdout = agg["holdout_auc"]
     print(f"\nFINAL BLEND OOF:     {blend_oof:.5f}")
     print(f"FINAL BLEND Holdout: {blend_holdout:.5f}")
     print(f"v14 holdout (parent): 0.95194")
+    print(f"v15 holdout:         0.95372 (current best internal)")
     print(f"v12 factory hold:    0.94998 (Block 1)")
 
     if is_sanity:
@@ -140,15 +145,15 @@ def main(subsample: int | None, gpu: bool):
 
     out_dir = PROBS / "v16_factory_yekenot"
     out_dir.mkdir(parents=True, exist_ok=True)
-    np.save(out_dir / "oof.npy", agg["oof_pred"])
-    np.save(out_dir / "holdout.npy", agg["holdout_pred"])
-    np.save(out_dir / "test.npy", agg["test_pred"])
+    np.save(out_dir / "oof.npy", agg["oof"])
+    np.save(out_dir / "holdout.npy", agg["holdout"])
+    np.save(out_dir / "test.npy", agg["test"])
 
     audit = {
         "variants_summary": [{
-            "name": r["name"], "oof_auc": float(r["oof_auc"]),
-            "holdout_auc": float(r["holdout_auc"]), "runtime_sec": float(r["runtime_sec"]),
-        } for r in results],
+            "name": v["name"], "oof_auc": float(v["oof_auc"]),
+            "holdout_auc": float(v["holdout_auc"]), "runtime_sec": float(v["runtime_sec"]),
+        } for v in per_variant],
         "blend_weights": list(agg.get("weights", [])),
         "blend_method": agg.get("method", "unknown"),
         "blend_oof_auc": float(blend_oof),
@@ -158,7 +163,7 @@ def main(subsample: int | None, gpu: bool):
     print(f"Saved probs + audit to {out_dir}/")
 
     SUBMISSIONS.mkdir(parents=True, exist_ok=True)
-    sub = pd.DataFrame({ID: test_fe[ID].astype("int64"), TARGET: agg["test_pred"]})
+    sub = pd.DataFrame({ID: test_fe[ID].astype("int64"), TARGET: agg["test"]})
     sub.to_csv(SUBMISSIONS / "v16_factory_yekenot.csv", index=False)
 
     exp.record(
