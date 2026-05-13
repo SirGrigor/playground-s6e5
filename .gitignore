@@ -35,5 +35,8 @@ harvest/v18/*/
 *.swp
 .DS_Store
 
+# per-run releases log (regenerates per Colab session)
+releases.jsonl
+
 # only the split definition is tracked, not the data itself
 !data/splits/
