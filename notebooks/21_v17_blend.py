@@ -39,6 +39,36 @@ from src.config import PROBS, SUBMISSIONS, TARGET, ID, ROOT
 from src.data import load_train_pool, load_holdout, load_test
 
 
+# Known Drive backup path (Colab default). v17 auto-restores from here if local is empty.
+COLAB_DRIVE_PROBS = Path("/content/drive/MyDrive/Colab Notebooks/kaggle/s6e5/probs")
+COLAB_DRIVE_HARVEST = Path("/content/drive/MyDrive/Colab Notebooks/kaggle/s6e5/harvest")
+
+
+def restore_from_drive_if_needed() -> None:
+    """If running on Colab and local probs/harvest are empty, pull from Drive.
+
+    Makes v17 stable across re-clones — Drive is the source of truth,
+    /content is just a working copy.
+    """
+    import shutil
+    if COLAB_DRIVE_PROBS.exists():
+        PROBS.mkdir(parents=True, exist_ok=True)
+        for src_dir in COLAB_DRIVE_PROBS.iterdir():
+            if not src_dir.is_dir():
+                continue
+            dst_dir = PROBS / src_dir.name
+            if not dst_dir.exists():
+                shutil.copytree(src_dir, dst_dir)
+                print(f"  restored probs/{src_dir.name} from Drive")
+
+    drive_harvest = COLAB_DRIVE_HARVEST / "v13"
+    local_harvest = ROOT / "harvest" / "v13"
+    if drive_harvest.exists() and not local_harvest.exists():
+        local_harvest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(drive_harvest, local_harvest)
+        print(f"  restored harvest/v13 from Drive")
+
+
 def load_probs(version: str) -> dict | None:
     """Load probs/{version}/{oof,holdout,test}.npy if all present."""
     d = PROBS / version
@@ -77,6 +107,11 @@ def nelder_mead_weights(oof_matrix: np.ndarray, y_pool: np.ndarray) -> np.ndarra
 
 
 def main() -> int:
+    # Step 0: Drive recovery — makes v17 idempotent across Colab re-clones.
+    print("=== Drive recovery (if on Colab) ===")
+    restore_from_drive_if_needed()
+    print()
+
     pool = load_train_pool()
     holdout = load_holdout()
     test = load_test()
