@@ -431,8 +431,14 @@ def _train_realmlp(
     params: dict,
     n_folds: int,
     cv_seed: int,
+    te_cols: list[str] | None = None,
+    te_pairs: list[tuple[str, str]] | None = None,
 ) -> dict:
     from pytabkit import RealMLP_TD_Classifier
+
+    te_cols = te_cols or []
+    te_pairs = te_pairs or []
+    use_te = bool(te_cols or te_pairs)
 
     cv = make_cv()
     oof = np.zeros(len(X_pool))
@@ -445,26 +451,36 @@ def _train_realmlp(
         X_pool, X_holdout, X_test, cat_cols=categorical_cols
     )
 
-    X_pool_view = X_pool[feature_cols]
-    X_holdout_view = X_holdout[feature_cols]
-    X_test_view = X_test[feature_cols]
-
     for fold, (tr_idx, val_idx) in enumerate(cv.split(np.arange(len(X_pool)), y_pool)):
-        Xtr = X_pool_view.iloc[tr_idx]
+        Xtr = X_pool.iloc[tr_idx].copy()
+        Xva = X_pool.iloc[val_idx].copy()
         ytr = y_pool[tr_idx]
-        Xva = X_pool_view.iloc[val_idx]
         yva = y_pool[val_idx]
+        Xho = X_holdout.copy()
+        Xte = X_test.copy()
+
+        fold_feature_cols = list(feature_cols)
+        if use_te:
+            Xtr, Xva, Xho, Xte, te_added = _apply_target_encoding(
+                Xtr, Xva, Xho, Xte, ytr, te_cols, te_pairs
+            )
+            fold_feature_cols = list(feature_cols) + te_added
+
+        Xtr_view = Xtr[fold_feature_cols]
+        Xva_view = Xva[fold_feature_cols]
+        Xho_view = Xho[fold_feature_cols]
+        Xte_view = Xte[fold_feature_cols]
 
         model = RealMLP_TD_Classifier(**params)
         # pytabkit's fit takes val set as positional args (different from sklearn)
-        model.fit(Xtr, ytr, Xva, yva)
+        model.fit(Xtr_view, ytr, Xva_view, yva)
 
-        val_pred = model.predict_proba(Xva)[:, 1]
+        val_pred = model.predict_proba(Xva_view)[:, 1]
         oof[val_idx] = val_pred
         fold_auc = roc_auc_score(yva, val_pred)
         fold_aucs.append(fold_auc)
-        holdout_pred_folds[fold] = model.predict_proba(X_holdout_view)[:, 1]
-        test_pred_folds[fold] = model.predict_proba(X_test_view)[:, 1]
+        holdout_pred_folds[fold] = model.predict_proba(Xho_view)[:, 1]
+        test_pred_folds[fold] = model.predict_proba(Xte_view)[:, 1]
         print(f"  fold {fold+1}/{n_folds}  AUC={fold_auc:.5f}")
 
     holdout_pred = holdout_pred_folds.mean(axis=0)
@@ -526,12 +542,11 @@ def train_variant(
         )
     elif algo == "realmlp":
         params = {**_realmlp_defaults(use_gpu), **(params or {})}
-        if te_cols or te_pairs:
-            raise NotImplementedError("TE for RealMLP not wired yet.")
         result = _train_realmlp(
             X_pool=X_pool, y_pool=y_pool, X_holdout=X_holdout, X_test=X_test,
             feature_cols=feature_cols, categorical_cols=categorical_cols,
             params=params, n_folds=n_folds, cv_seed=cv_seed,
+            te_cols=te_cols, te_pairs=te_pairs,
         )
     elif algo == "tabm":
         params = {**_tabm_defaults(use_gpu), **(params or {})}

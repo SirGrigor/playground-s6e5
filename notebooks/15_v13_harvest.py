@@ -54,6 +54,11 @@ KERNELS = [
         "claimed_lb": None,
         "tag": "catboost_10fold",
     },
+    {
+        "slug": "yekenot/ps-s6-e5-realmlp-pytabkit",
+        "claimed_lb": 0.9517,  # rmlp-solo OOF reported in notebook
+        "tag": "yekenot_ensemble",
+    },
 ]
 
 

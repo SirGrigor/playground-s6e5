@@ -182,3 +182,124 @@ def add_digit_features(df, inplace=False, positions=None):
         for k in ks:
             df[f"{col}_digit{k}"] = _digit_at(arr, k)
     return df
+
+
+# =========================================================================
+# Block Yekenot — feature engineering reproduced from
+# https://www.kaggle.com/code/yekenot/ps-s6-e5-realmlp-pytabkit (OOF 0.9537).
+#
+# Target-free transforms (the TE on Race×Compound / Race×Year combos is
+# handled separately by train_variant's te_pairs argument, so it stays
+# fold-safe). The transforms here are deterministic given the training
+# distribution; we fit on pool, transform on holdout/test.
+#
+# Components:
+#   1. Arithmetic interactions  (LapNumber/RaceProgress, TyreLife/LapNumber)
+#   2. Floor-factorize numericals → categorical codes
+#   3. Count encoding for categoricals
+#   4. KBins discretization (RaceProgress×200, LapTime×7)
+# =========================================================================
+
+YEKENOT_NUM_COLS = [
+    "Year", "PitStop", "LapNumber", "Stint", "TyreLife", "Position",
+    "LapTime (s)", "LapTime_Delta", "Cumulative_Degradation",
+    "RaceProgress", "Position_Change",
+]
+YEKENOT_CAT_COLS = ["Driver", "Compound", "Race"]
+YEKENOT_KBIN_CONFIG = {"RaceProgress": 200, "LapTime (s)": 7}
+
+
+def _yekenot_arith(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    df["_LapNumber_/_RaceProgress"] = (
+        df["LapNumber"] / (df["RaceProgress"] + 1e-6)
+    ).astype("float32")
+    df["_TyreLife_/_LapNumber"] = (
+        df["TyreLife"] / df["LapNumber"].clip(lower=1)
+    ).astype("float32")
+    return df
+
+
+def yekenot_fe_fit(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
+    """Apply yekenot FE in fit mode, return (transformed_df, state_dict).
+
+    Pass `state_dict` to `yekenot_fe_transform` for downstream frames.
+    """
+    from sklearn.preprocessing import KBinsDiscretizer
+
+    df = _yekenot_arith(df)
+    state: dict = {"factorize": {}, "counts": {}, "kbins": {}, "arith_cols": [
+        "_LapNumber_/_RaceProgress", "_TyreLife_/_LapNumber"
+    ]}
+
+    # Floor-factorize numericals (and the two arith cols) → categorical codes
+    floor_cols = YEKENOT_NUM_COLS + state["arith_cols"]
+    for col in floor_cols:
+        cat_name = f"{col}_cat_" if col in YEKENOT_NUM_COLS else f"{col[1:]}_cat_"
+        codes, uniques = pd.factorize(np.floor(df[col]), sort=True)
+        state["factorize"][col] = (cat_name, uniques)
+        df[cat_name] = codes.astype("int32")
+
+    # Count encoding on (cat cols + year_cat / pitstop_cat from above)
+    count_target_cols = list(YEKENOT_CAT_COLS) + ["Year_cat_", "PitStop_cat_"]
+    for col in count_target_cols:
+        count_map = df[col].value_counts()
+        state["counts"][col] = count_map.to_dict()
+        new_name = f"_{col}_count" if col in YEKENOT_CAT_COLS else f"_{col[:-1]}_count"
+        df[new_name] = df[col].map(state["counts"][col]).fillna(0).astype("int32")
+
+    # KBins discretization
+    for col, n_bins in YEKENOT_KBIN_CONFIG.items():
+        kb = KBinsDiscretizer(
+            n_bins=n_bins, encode="ordinal", strategy="quantile", subsample=None
+        )
+        binned = kb.fit_transform(df[[col]]).ravel().astype("int32")
+        state["kbins"][col] = kb
+        df[f"{col}_{n_bins}_quantile_bin_"] = binned
+
+    return df, state
+
+
+def yekenot_fe_transform(df: pd.DataFrame, state: dict) -> pd.DataFrame:
+    """Apply pre-fitted yekenot FE to new data (holdout / test)."""
+    df = _yekenot_arith(df)
+
+    for col, (cat_name, uniques) in state["factorize"].items():
+        code_map = {cat: i for i, cat in enumerate(uniques)}
+        codes = np.floor(df[col]).map(code_map).fillna(-1).astype("int32")
+        df[cat_name] = codes
+
+    for col, count_map in state["counts"].items():
+        new_name = f"_{col}_count" if col in YEKENOT_CAT_COLS else f"_{col[:-1]}_count"
+        df[new_name] = df[col].map(count_map).fillna(0).astype("int32")
+
+    for col, kb in state["kbins"].items():
+        n_bins = state["kbins"][col].n_bins
+        binned = kb.transform(df[[col]]).ravel().astype("int32")
+        df[f"{col}_{n_bins}_quantile_bin_"] = binned
+
+    return df
+
+
+def yekenot_feature_lists(state: dict) -> tuple[list[str], list[str]]:
+    """After running yekenot_fe_fit, derive (feature_cols, categorical_cols).
+
+    Returns:
+      feature_cols: numeric features to feed to RealMLP (arith + counts + bins)
+      categorical_cols: cat features for native embedding (Driver/Compound/Race + the *_cat_)
+    """
+    floor_cats = [name for (name, _) in state["factorize"].values()]
+    counts = [
+        f"_{col}_count" if col in YEKENOT_CAT_COLS else f"_{col[:-1]}_count"
+        for col in (list(YEKENOT_CAT_COLS) + ["Year_cat_", "PitStop_cat_"])
+    ]
+    bins = [
+        f"{col}_{n}_quantile_bin_" for col, n in YEKENOT_KBIN_CONFIG.items()
+    ]
+    numeric_feats = (
+        ["LapNumber", "Stint", "TyreLife", "LapTime (s)", "LapTime_Delta",
+         "Cumulative_Degradation", "RaceProgress", "Position_Change"]
+        + state["arith_cols"] + counts
+    )
+    cat_feats = list(YEKENOT_CAT_COLS) + floor_cats + bins
+    return numeric_feats, cat_feats
