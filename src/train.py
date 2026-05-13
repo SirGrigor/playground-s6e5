@@ -342,6 +342,85 @@ def _realmlp_defaults(use_gpu: bool) -> dict:
     }
 
 
+def _tabm_defaults(use_gpu: bool) -> dict:
+    """pytabkit TabM_D_Classifier defaults — same family as RealMLP but
+    different architecture (different paper / network design). Used as the
+    "architectural diversity" companion to RealMLP for blending.
+    Config patterned on cstdy's S6E4 winning notebook (which used TabM_D).
+    """
+    return {
+        "random_state": MODEL_SEED,
+        "verbosity": 1,
+        "val_metric_name": "1-auc_ovr",
+
+        # TabM-specific ensembling parameter
+        "tabm_k": 32,
+        "num_emb_type": "pwl",
+        "d_embedding": 12,
+        "batch_size": 256,
+        "lr": 3e-3,
+        "weight_decay": 2e-2,
+        "n_epochs": 3,
+        "dropout": 0.1,
+        "d_block": 256,
+        "n_blocks": 3,
+    }
+
+
+def _train_tabm(
+    X_pool: pd.DataFrame,
+    y_pool: np.ndarray,
+    X_holdout: pd.DataFrame,
+    X_test: pd.DataFrame,
+    feature_cols: list[str],
+    categorical_cols: list[str],
+    params: dict,
+    n_folds: int,
+    cv_seed: int,
+) -> dict:
+    from pytabkit import TabM_D_Classifier
+
+    cv = make_cv()
+    oof = np.zeros(len(X_pool))
+    holdout_pred_folds = np.zeros((n_folds, len(X_holdout)))
+    test_pred_folds = np.zeros((n_folds, len(X_test)))
+    fold_aucs: list[float] = []
+
+    X_pool, X_holdout, X_test = _align_category_codes(
+        X_pool, X_holdout, X_test, cat_cols=categorical_cols
+    )
+
+    X_pool_view = X_pool[feature_cols]
+    X_holdout_view = X_holdout[feature_cols]
+    X_test_view = X_test[feature_cols]
+
+    for fold, (tr_idx, val_idx) in enumerate(cv.split(np.arange(len(X_pool)), y_pool)):
+        Xtr = X_pool_view.iloc[tr_idx]
+        ytr = y_pool[tr_idx]
+        Xva = X_pool_view.iloc[val_idx]
+        yva = y_pool[val_idx]
+
+        model = TabM_D_Classifier(**params)
+        model.fit(Xtr, ytr, Xva, yva)
+
+        val_pred = model.predict_proba(Xva)[:, 1]
+        oof[val_idx] = val_pred
+        fold_auc = roc_auc_score(yva, val_pred)
+        fold_aucs.append(fold_auc)
+        holdout_pred_folds[fold] = model.predict_proba(X_holdout_view)[:, 1]
+        test_pred_folds[fold] = model.predict_proba(X_test_view)[:, 1]
+        print(f"  fold {fold+1}/{n_folds}  AUC={fold_auc:.5f}")
+
+    holdout_pred = holdout_pred_folds.mean(axis=0)
+    test_pred = test_pred_folds.mean(axis=0)
+    return {
+        "oof_pred": oof,
+        "holdout_pred": holdout_pred,
+        "test_pred": test_pred,
+        "fold_aucs": fold_aucs,
+    }
+
+
 def _train_realmlp(
     X_pool: pd.DataFrame,
     y_pool: np.ndarray,
@@ -450,6 +529,15 @@ def train_variant(
         if te_cols or te_pairs:
             raise NotImplementedError("TE for RealMLP not wired yet.")
         result = _train_realmlp(
+            X_pool=X_pool, y_pool=y_pool, X_holdout=X_holdout, X_test=X_test,
+            feature_cols=feature_cols, categorical_cols=categorical_cols,
+            params=params, n_folds=n_folds, cv_seed=cv_seed,
+        )
+    elif algo == "tabm":
+        params = {**_tabm_defaults(use_gpu), **(params or {})}
+        if te_cols or te_pairs:
+            raise NotImplementedError("TE for TabM not wired yet.")
+        result = _train_tabm(
             X_pool=X_pool, y_pool=y_pool, X_holdout=X_holdout, X_test=X_test,
             feature_cols=feature_cols, categorical_cols=categorical_cols,
             params=params, n_folds=n_folds, cv_seed=cv_seed,
