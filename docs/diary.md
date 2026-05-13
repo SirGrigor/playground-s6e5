@@ -10,6 +10,7 @@ Source of truth: `experiments.jsonl` (git-tracked, append-only). Auto-regenerate
 | [v2_lgb_te](versions/v2_lgb_te.md) | `v1_lgb` | +0.00400 | -0.00055 | 0.94324 | 0.94174 | +0.00150 | Driver weak alone (MI=0.009) but (Driver,Compound) and (Race,Compou... | ⚠ prediction_sign_mismatch, multiple_changes |
 | [v3_lgb_compxprog](versions/v3_lgb_compxprog.md) | `v1_lgb` | +0.00150 | -0.00277 | 0.94102 | 0.93996 | +0.00106 | Compound × RaceProgress is the strongest EDA-confirmed interaction ... | ⚠ silent_regression, prediction_sign_mismatch |
 | [v4_xgb](versions/v4_xgb.md) | `v1_lgb` | +0.00100 | -0.00003 | 0.94375 | 0.94263 | +0.00112 | v2 and v3 proved LGB on Block 1 is plateaued. Switching to XGBoost ... | ⚠ prediction_sign_mismatch, multiple_changes |
+| [v5_blend_lgb_xgb](versions/v5_blend_lgb_xgb.md) | `v1_lgb` | +0.00080 | +0.00033 | 0.94412 | 0.94321 | +0.00091 | Simple average of v1 LGB + v4 XGB. Both tied solo (all metrics with... | ⚠ prediction_undershot, multiple_changes |
 
 ## Read more
 - Per-version write-ups: `docs/versions/<vN>.md`
