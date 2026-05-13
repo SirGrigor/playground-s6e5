@@ -299,6 +299,7 @@ def harvest_one(slug: str, title: str, votes: int, test_ids: np.ndarray,
         "slug": slug, "title": title, "votes": int(votes), "tag": tag,
         "claimed_lb": extract_claimed_lb(title),
         "download_failed": False, "download_err": None,
+        "verdict": "UNCLASSIFIED",  # defensive default; overwritten before return
     }
 
     # Download (skip if directory already populated and --skip-existing)

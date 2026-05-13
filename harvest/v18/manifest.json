@@ -96,5 +96,1445 @@
     },
     "rho_with_anchor": 0.9942678664460896,
     "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "sarcasmos/predicting-f1-pit-stops",
+    "title": "Predicting F1 Pit Stops",
+    "votes": 60,
+    "tag": "sarcasmos_predicting-f1-pit-stops",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/sarcasmos_predicting-f1-pit-stops/submission.csv",
+      "log": "harvest/v18/sarcasmos_predicting-f1-pit-stops/predicting-f1-pit-stops.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": false,
+      "issues": [
+        "nan or inf predictions"
+      ]
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": null,
+    "verdict": "EDA"
+  },
+  {
+    "slug": "leonchani/02-nn-predicting-f1-pit-stops",
+    "title": "02_NN_Predicting_F1_Pit_Stops",
+    "votes": 58,
+    "tag": "leonchani_02-nn-predicting-f1-pit-stops",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": null,
+      "log": null
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": false,
+      "issues": [
+        "no submission file found"
+      ]
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": null,
+    "verdict": "EDA"
+  },
+  {
+    "slug": "cdeotte/eda-predicting-f1-pit-stops",
+    "title": "EDA - Predicting F1 Pit Stops",
+    "votes": 57,
+    "tag": "cdeotte_eda-predicting-f1-pit-stops",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": null,
+      "log": "harvest/v18/cdeotte_eda-predicting-f1-pit-stops/eda-predicting-f1-pit-stops.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": false,
+      "issues": [
+        "no submission file found"
+      ]
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": null,
+    "verdict": "EDA"
+  },
+  {
+    "slug": "analyticaobscura/pit-or-stay-f1-strategy-1",
+    "title": "\t\ud83c\udfce\ufe0f Pit or Stay? F1 Strategy -1",
+    "votes": 53,
+    "tag": "analyticaobscura_pit-or-stay-f1-strategy-1",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": "harvest/v18/analyticaobscura_pit-or-stay-f1-strategy-1/submission_safe_oof_raw_like.csv",
+      "submission": "harvest/v18/analyticaobscura_pit-or-stay-f1-strategy-1/submission_realmlp_single.csv",
+      "log": "harvest/v18/analyticaobscura_pit-or-stay-f1-strategy-1/pit-or-stay-f1-strategy-1.log"
+    },
+    "claimed_oof_auc": 0.96234,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.19784287528392766,
+      "min": 1.145204805652611e-05,
+      "max": 0.9996572732925416
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "only 0/351312 pool ids in OOF \u2014 author trained on subset"
+      ]
+    },
+    "rho_with_anchor": 0.9861876180252221,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "rohit8527kmr7518/ps-s6e5-catboost-10-fold-cv",
+    "title": "PS S6E5: CatBoost 10-Fold CV",
+    "votes": 48,
+    "tag": "rohit8527kmr7518_ps-s6e5-catboost-10-fold-cv",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": "harvest/v18/rohit8527kmr7518_ps-s6e5-catboost-10-fold-cv/oof_predictions.csv",
+      "submission": "harvest/v18/rohit8527kmr7518_ps-s6e5-catboost-10-fold-cv/submission.csv",
+      "log": "harvest/v18/rohit8527kmr7518_ps-s6e5-catboost-10-fold-cv/ps-s6e5-catboost-10-fold-cv.log"
+    },
+    "claimed_oof_auc": 0.95265,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.27262276132471813,
+      "min": 9.7634314e-05,
+      "max": 0.99698037
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "expected 1 pred col, got ['y_true', 'oof_pred', 'class_05', 'class_best_threshold']"
+      ]
+    },
+    "rho_with_anchor": 0.9831706427819451,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "mpwolke/slowest-kaggle-pit-stop",
+    "title": "Slowest Kaggle Pit Stop",
+    "votes": 48,
+    "tag": "mpwolke_slowest-kaggle-pit-stop",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": null,
+      "log": "harvest/v18/mpwolke_slowest-kaggle-pit-stop/slowest-kaggle-pit-stop.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": false,
+      "issues": [
+        "no submission file found"
+      ]
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": null,
+    "verdict": "EDA"
+  },
+  {
+    "slug": "pilkwang/s6e5-driver-s-high-driver-feature-eng",
+    "title": "\ud83c\udfce\ufe0f\ud83d\udca5 [S6E5] Driver's High - Driver Feature Eng.",
+    "votes": 47,
+    "tag": "pilkwang_s6e5-driver-s-high-driver-feature-eng",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/pilkwang_s6e5-driver-s-high-driver-feature-eng/submission.csv",
+      "log": "harvest/v18/pilkwang_s6e5-driver-s-high-driver-feature-eng/s6e5-driver-s-high-driver-feature-eng.log"
+    },
+    "claimed_oof_auc": 0.94682,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.19816211808435147,
+      "min": 8.666230700000001e-05,
+      "max": 0.995424826
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9913192842001196,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "aryankaisth/s6e5-the-complete-eda-100",
+    "title": "S6E5 - The Complete EDA 100%",
+    "votes": 46,
+    "tag": "aryankaisth_s6e5-the-complete-eda-100",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": null,
+      "log": "harvest/v18/aryankaisth_s6e5-the-complete-eda-100/s6e5-the-complete-eda-100.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": false,
+      "issues": [
+        "no submission file found"
+      ]
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": null,
+    "verdict": "EDA"
+  },
+  {
+    "slug": "lucabasa/f1-strategy-eda-and-base-models",
+    "title": "F1 Strategy EDA and base models",
+    "votes": 45,
+    "tag": "lucabasa_f1-strategy-eda-and-base-models",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/lucabasa_f1-strategy-eda-and-base-models/submission.csv",
+      "log": "harvest/v18/lucabasa_f1-strategy-eda-and-base-models/f1-strategy-eda-and-base-models.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.28760489725846844,
+      "min": 0.0001589173185798,
+      "max": 0.9963272443426496
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9786957217084414,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "nalisha/end-to-end-ml-pipeline-with-cross-validation",
+    "title": "End-to-End ML Pipeline with  Cross-Validation",
+    "votes": 42,
+    "tag": "nalisha_end-to-end-ml-pipeline-with-cross-validation",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/nalisha_end-to-end-ml-pipeline-with-cross-validation/submission.csv",
+      "log": "harvest/v18/nalisha_end-to-end-ml-pipeline-with-cross-validation/end-to-end-ml-pipeline-with-cross-validation.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.2014792436603168,
+      "min": 0.0071503221875074,
+      "max": 0.7847095337183169
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.8909867168748914,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "anthonytherrien/predicting-f1-pit-stops-blend",
+    "title": "Predicting F1 Pit Stops | Blend",
+    "votes": 42,
+    "tag": "anthonytherrien_predicting-f1-pit-stops-blend",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/anthonytherrien_predicting-f1-pit-stops-blend/submission.csv",
+      "log": "harvest/v18/anthonytherrien_predicting-f1-pit-stops-blend/predicting-f1-pit-stops-blend.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.20707645817066814,
+      "min": 0.0001418447936831,
+      "max": 0.9930446295537472
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9942533945372037,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "nina2025/ps-s6e5-hb1",
+    "title": "PS-s6e5 | hb1",
+    "votes": 41,
+    "tag": "nina2025_ps-s6e5-hb1",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/nina2025_ps-s6e5-hb1/submission.csv",
+      "log": "harvest/v18/nina2025_ps-s6e5-hb1/ps-s6e5-hb1.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.221281089356325,
+      "min": 0.00019442901,
+      "max": 0.9881761
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9926135719389524,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "flexonafft/f1-best-catboost-solution-0-95259",
+    "title": "F1 | Best CatBoost Solution | 0.95259 ",
+    "votes": 41,
+    "tag": "flexonafft_f1-best-catboost-solution-0-95259",
+    "claimed_lb": 0.95259,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": "harvest/v18/flexonafft_f1-best-catboost-solution-0-95259/outputs/stacking/oof_stack.csv",
+      "submission": "harvest/v18/flexonafft_f1-best-catboost-solution-0-95259/submission.csv",
+      "log": "harvest/v18/flexonafft_f1-best-catboost-solution-0-95259/f1-best-catboost-solution-0-95259.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.2765820766385579,
+      "min": 0.0001089842971598,
+      "max": 0.996675444382064
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "missing 'id' col"
+      ]
+    },
+    "rho_with_anchor": 0.9834247289971751,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "pilkwang/ps-s6e5-eda-pred-step-by-step-guidelines",
+    "title": "\ud83d\udcca PS-S6E5 [EDA+Pred.] Step-by-Step Guidelines",
+    "votes": 41,
+    "tag": "pilkwang_ps-s6e5-eda-pred-step-by-step-guidelines",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/pilkwang_ps-s6e5-eda-pred-step-by-step-guidelines/submission.csv",
+      "log": "harvest/v18/pilkwang_ps-s6e5-eda-pred-step-by-step-guidelines/ps-s6e5-eda-pred-step-by-step-guidelines.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.49999999999999994,
+      "min": 3.932697724349776e-05,
+      "max": 0.9999808679570166
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9930975899047391,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "darwish1337/f1-pitstop-medal",
+    "title": "F1-PitStop-Medal",
+    "votes": 38,
+    "tag": "darwish1337_f1-pitstop-medal",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/darwish1337_f1-pitstop-medal/submission.csv",
+      "log": "harvest/v18/darwish1337_f1-pitstop-medal/f1-pitstop-medal.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.19494384469288462,
+      "min": 6.022926133604053e-05,
+      "max": 0.992254624130069
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9732012267881559,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "imrancoder786/ps-s6-e5-0-95130",
+    "title": "PS|S6|E5:0.95130",
+    "votes": 35,
+    "tag": "imrancoder786_ps-s6-e5-0-95130",
+    "claimed_lb": 0.9513,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": "harvest/v18/imrancoder786_ps-s6-e5-0-95130/outputs/oof_predictions.csv",
+      "submission": "harvest/v18/imrancoder786_ps-s6-e5-0-95130/outputs/submission_final_committee.csv",
+      "log": "harvest/v18/imrancoder786_ps-s6-e5-0-95130/ps-s6-e5-0-95130.log"
+    },
+    "claimed_oof_auc": 0.95119,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.5000026572369994,
+      "min": 7.545684897226503e-06,
+      "max": 0.999999
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "expected 1 pred col, got ['PitNextLap', 'catboost', 'lightgbm', 'xgboost', 'blend_raw', 'blend_rank', 'stack_logit', 'final_committee']"
+      ]
+    },
+    "rho_with_anchor": 0.9817897331493738,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "muhammadusmankhan0/pitstops-lgbm-xgboost-lr-catboost-ens-97-auc",
+    "title": "PitStops | LGBM/XGBOOST/LR/CATBOOST/ENS 97+ AUC",
+    "votes": 34,
+    "tag": "muhammadusmankhan0_pitstops-lgbm-xgboost-lr-catboost-ens-97-auc",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/muhammadusmankhan0_pitstops-lgbm-xgboost-lr-catboost-ens-97-auc/submission.csv",
+      "log": "harvest/v18/muhammadusmankhan0_pitstops-lgbm-xgboost-lr-catboost-ens-97-auc/pitstops-lgbm-xgboost-lr-catboost-ens-97-auc.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.2843963291960229,
+      "min": 7.1308564763759e-05,
+      "max": 0.9946808054538588
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9641504152436298,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "emanuellcs/predicting-f1-pit-stops-xgboost-baseline",
+    "title": "Predicting F1 Pit Stops | XGBoost Baseline",
+    "votes": 34,
+    "tag": "emanuellcs_predicting-f1-pit-stops-xgboost-baseline",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/emanuellcs_predicting-f1-pit-stops-xgboost-baseline/submission.csv",
+      "log": "harvest/v18/emanuellcs_predicting-f1-pit-stops-xgboost-baseline/predicting-f1-pit-stops-xgboost-baseline.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.1977559935535185,
+      "min": 7.428453045577044e-06,
+      "max": 0.9985935389995576
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9695316476066511,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "ravi20076/playgrounds6e5-public-baseline-v1",
+    "title": "PlaygroundS6E5|Public|Baseline|V1",
+    "votes": 32,
+    "tag": "ravi20076_playgrounds6e5-public-baseline-v1",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/ravi20076_playgrounds6e5-public-baseline-v1/submission.csv",
+      "log": "harvest/v18/ravi20076_playgrounds6e5-public-baseline-v1/playgrounds6e5-public-baseline-v1.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.5000271781113083,
+      "min": -0.0029434116684204,
+      "max": 1.0077149963330252
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9925010927505487,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "berkayzkan/xgboost-baseline",
+    "title": "xgboost baseline",
+    "votes": 31,
+    "tag": "berkayzkan_xgboost-baseline",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/berkayzkan_xgboost-baseline/xgboost_native_cat_5fold_3seed_submission.csv",
+      "log": "harvest/v18/berkayzkan_xgboost-baseline/xgboost-baseline.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.19682488952792432,
+      "min": 0.00028279872,
+      "max": 0.98867893
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9726774914049878,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "leonchani/01-eda-predicting-f1-pit-stops",
+    "title": "01_EDA_Predicting_F1_Pit_Stops",
+    "votes": 29,
+    "tag": "leonchani_01-eda-predicting-f1-pit-stops",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": null,
+      "log": "harvest/v18/leonchani_01-eda-predicting-f1-pit-stops/01-eda-predicting-f1-pit-stops.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": false,
+      "issues": [
+        "no submission file found"
+      ]
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": null,
+    "verdict": "EDA"
+  },
+  {
+    "slug": "anthonytherrien/predicting-f1-pit-stops-nn-residual-network",
+    "title": "Predicting F1 Pit Stops | NN Residual Network",
+    "votes": 28,
+    "tag": "anthonytherrien_predicting-f1-pit-stops-nn-residual-network",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/anthonytherrien_predicting-f1-pit-stops-nn-residual-network/submission.csv",
+      "log": "harvest/v18/anthonytherrien_predicting-f1-pit-stops-nn-residual-network/predicting-f1-pit-stops-nn-residual-network.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.20707640161195337,
+      "min": 0.000141846016272,
+      "max": 0.9930448336539336
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9942533976391293,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "sadettinamilverdil/sebastian-vettel-aaaa",
+    "title": "Sebastian Vettel aaaa",
+    "votes": 28,
+    "tag": "sadettinamilverdil_sebastian-vettel-aaaa",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/sadettinamilverdil_sebastian-vettel-aaaa/submission_xgb_cat_ensemble.csv",
+      "log": "harvest/v18/sadettinamilverdil_sebastian-vettel-aaaa/sebastian-vettel-aaaa.log"
+    },
+    "claimed_oof_auc": 0.95184,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.23509614436551388,
+      "min": 0.0001603450390401,
+      "max": 0.993930629156362
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9822832851756854,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "mohamedsadokaissaoui/beginner-friendly-xgboost-feature-engineering",
+    "title": "Beginner friendly |XGBoost | Feature Engineering  ",
+    "votes": 28,
+    "tag": "mohamedsadokaissaoui_beginner-friendly-xgboost-feature-engineering",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/mohamedsadokaissaoui_beginner-friendly-xgboost-feature-engineering/submission.csv",
+      "log": "harvest/v18/mohamedsadokaissaoui_beginner-friendly-xgboost-feature-engineering/beginner-friendly-xgboost-feature-engineering.log"
+    },
+    "claimed_oof_auc": 0.9574,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.2759060712525597,
+      "min": 8.821786991575209e-06,
+      "max": 0.999340832233429
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9667266025640273,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "ldausl/predicting-f1-pit-stops",
+    "title": "Predicting F1 Pit Stops",
+    "votes": 28,
+    "tag": "ldausl_predicting-f1-pit-stops",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/ldausl_predicting-f1-pit-stops/submission.csv",
+      "log": "harvest/v18/ldausl_predicting-f1-pit-stops/predicting-f1-pit-stops.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.20707645817066814,
+      "min": 0.0001418447936831,
+      "max": 0.9930446295537472
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9942533945372037,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "visheshbanna/initial-eda-baseline",
+    "title": "Initial_EDA_BASELINE",
+    "votes": 24,
+    "tag": "visheshbanna_initial-eda-baseline",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/visheshbanna_initial-eda-baseline/submission.csv",
+      "log": "harvest/v18/visheshbanna_initial-eda-baseline/initial-eda-baseline.log"
+    },
+    "claimed_oof_auc": 0.93415,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.19790955574593747,
+      "min": 0.0284507811198311,
+      "max": 0.9498009221194094
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9135819973307027,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "lancecasimiro/predicting-f1-pit-stops",
+    "title": "Predicting F1 Pit Stops",
+    "votes": 24,
+    "tag": "lancecasimiro_predicting-f1-pit-stops",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/lancecasimiro_predicting-f1-pit-stops/submission.csv",
+      "log": "harvest/v18/lancecasimiro_predicting-f1-pit-stops/predicting-f1-pit-stops.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.5,
+      "min": 5.314456384256454e-06,
+      "max": 0.9999946855436156
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9738254592347603,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "sohailkhanlml/ps-e5-blending-works-0-95411",
+    "title": "PS E5 | Blending Works | 0.95411 ",
+    "votes": 23,
+    "tag": "sohailkhanlml_ps-e5-blending-works-0-95411",
+    "claimed_lb": 0.95411,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/sohailkhanlml_ps-e5-blending-works-0-95411/submission.csv",
+      "log": "harvest/v18/sohailkhanlml_ps-e5-blending-works-0-95411/ps-e5-blending-works-0-95411.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.20972521305968342,
+      "min": 1.0549959999999955e-05,
+      "max": 0.996221174365866
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9939463509963203,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "simarbirsinghsandhu/detailed-eda-on-comp-original-dataset",
+    "title": "\ud83d\udd2c Detailed EDA on Comp + Original Dataset",
+    "votes": 23,
+    "tag": "simarbirsinghsandhu_detailed-eda-on-comp-original-dataset",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": null,
+      "log": "harvest/v18/simarbirsinghsandhu_detailed-eda-on-comp-original-dataset/detailed-eda-on-comp-original-dataset.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": false,
+      "issues": [
+        "no submission file found"
+      ]
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": null,
+    "verdict": "EDA"
+  },
+  {
+    "slug": "sohailkhanlml/f1-pit-stop-blending-the-leaderboard-0-95418",
+    "title": "F1 PIT STOP | BLENDING THE LEADERBOARD| 0.95418 ",
+    "votes": 22,
+    "tag": "sohailkhanlml_f1-pit-stop-blending-the-leaderboard-0-95418",
+    "claimed_lb": 0.95418,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/sohailkhanlml_f1-pit-stop-blending-the-leaderboard-0-95418/submission.csv",
+      "log": "harvest/v18/sohailkhanlml_f1-pit-stop-blending-the-leaderboard-0-95418/f1-pit-stop-blending-the-leaderboard-0-95418.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.2039157264014331,
+      "min": 0.0001398004143551,
+      "max": 0.99335814984416
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9942067459142404,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "safar1/lb-score-0-95419",
+    "title": "[LB] [SCORE] [0.95419]",
+    "votes": 22,
+    "tag": "safar1_lb-score-0-95419",
+    "claimed_lb": 0.95419,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/safar1_lb-score-0-95419/submission.csv",
+      "log": "harvest/v18/safar1_lb-score-0-95419/lb-score-0-95419.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.20707645817066814,
+      "min": 0.0001418447936831,
+      "max": 0.9930446295537472
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9942533945372037,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "evgendvorkin/raw-data-catboost-0-94898",
+    "title": "Raw Data CatBoost 0.94898",
+    "votes": 22,
+    "tag": "evgendvorkin_raw-data-catboost-0-94898",
+    "claimed_lb": 0.94898,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/evgendvorkin_raw-data-catboost-0-94898/submission.csv",
+      "log": "harvest/v18/evgendvorkin_raw-data-catboost-0-94898/raw-data-catboost-0-94898.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.2881576813279314,
+      "min": 3.4777045590504546e-05,
+      "max": 0.9982018674436994
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.968721747285309,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "sohailkhanlml/residual-multi-layer-perceptron-resmlp-0-9414",
+    "title": "Residual Multi-Layer Perceptron | ResMLP | 0.9414",
+    "votes": 21,
+    "tag": "sohailkhanlml_residual-multi-layer-perceptron-resmlp-0-9414",
+    "claimed_lb": 0.9414,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/sohailkhanlml_residual-multi-layer-perceptron-resmlp-0-9414/submission.csv",
+      "log": "harvest/v18/sohailkhanlml_residual-multi-layer-perceptron-resmlp-0-9414/residual-multi-layer-perceptron-resmlp-0-9414.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.19579262456124105,
+      "min": 0.0007817810983397,
+      "max": 0.9588334560394288
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9510762700695987,
+    "verdict": "WEAK"
+  },
+  {
+    "slug": "simarbirsinghsandhu/xgboost-gpu-fe-encoding",
+    "title": "\ud83d\ude80 XGBoost GPU | FE + Encoding",
+    "votes": 21,
+    "tag": "simarbirsinghsandhu_xgboost-gpu-fe-encoding",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/simarbirsinghsandhu_xgboost-gpu-fe-encoding/submission.csv",
+      "log": "harvest/v18/simarbirsinghsandhu_xgboost-gpu-fe-encoding/xgboost-gpu-fe-encoding.log"
+    },
+    "claimed_oof_auc": 0.95708,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.23456307159462284,
+      "min": 1.3076547702439711e-05,
+      "max": 0.9985837489366532
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9683640180429056,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "gyogyocat/0-95219-r-python",
+    "title": "0.95219_R/Python",
+    "votes": 21,
+    "tag": "gyogyocat_0-95219-r-python",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/gyogyocat_0-95219-r-python/submission.csv",
+      "log": "harvest/v18/gyogyocat_0-95219-r-python/0-95219-r-python.log"
+    },
+    "claimed_oof_auc": 0.95263,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.2674929423326835,
+      "min": 0.0001050928139987,
+      "max": 0.9983779357790766
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.981796215830387,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "obosrish/dont-overfit-on-orig-0-9512-public",
+    "title": "DONT OVERFIT ON ORIG: 0.9512 PUBLIC",
+    "votes": 20,
+    "tag": "obosrish_dont-overfit-on-orig-0-9512-public",
+    "claimed_lb": 0.9512,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": null,
+      "log": "harvest/v18/obosrish_dont-overfit-on-orig-0-9512-public/dont-overfit-on-orig-0-9512-public.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": false,
+      "issues": [
+        "no submission file found"
+      ]
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": null,
+    "verdict": "EDA"
+  },
+  {
+    "slug": "sohailkhanlml/f1-0-95419-diversity-is-all-we-need",
+    "title": "F1 - 0.95419 - Diversity is ALL we need!",
+    "votes": 20,
+    "tag": "sohailkhanlml_f1-0-95419-diversity-is-all-we-need",
+    "claimed_lb": 0.95419,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/sohailkhanlml_f1-0-95419-diversity-is-all-we-need/submission.csv",
+      "log": "harvest/v18/sohailkhanlml_f1-0-95419-diversity-is-all-we-need/f1-0-95419-diversity-is-all-we-need.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.20707645817066814,
+      "min": 0.0001418447936831,
+      "max": 0.9930446295537472
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9942533945372037,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "mohamedsadokaissaoui/ps6e5-ensemble-0-95314-best-score",
+    "title": "ps6e5 | ensemble | 0.95314 | best score",
+    "votes": 20,
+    "tag": "mohamedsadokaissaoui_ps6e5-ensemble-0-95314-best-score",
+    "claimed_lb": 0.95314,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/mohamedsadokaissaoui_ps6e5-ensemble-0-95314-best-score/submission.csv",
+      "log": "harvest/v18/mohamedsadokaissaoui_ps6e5-ensemble-0-95314-best-score/ps6e5-ensemble-0-95314-best-score.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.22282658166324007,
+      "min": 2.181813278128925e-05,
+      "max": 0.998882034085354
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9903188660015176,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "nikitakuznetsof/ps6e5-catboost-is-all-you-need",
+    "title": "PS6E5 | Catboost is all you need",
+    "votes": 19,
+    "tag": "nikitakuznetsof_ps6e5-catboost-is-all-you-need",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/nikitakuznetsof_ps6e5-catboost-is-all-you-need/submission.csv",
+      "log": "harvest/v18/nikitakuznetsof_ps6e5-catboost-is-all-you-need/ps6e5-catboost-is-all-you-need.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.270018571469673,
+      "min": 2.383836743119736e-06,
+      "max": 0.9997307679161404
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.971285105501973,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "amanatar/3-model-ensemble-realmlp-catboost-xgboost",
+    "title": "3-Model Ensemble: RealMLP + CatBoost + XGBoost",
+    "votes": 19,
+    "tag": "amanatar_3-model-ensemble-realmlp-catboost-xgboost",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": null,
+      "log": "harvest/v18/amanatar_3-model-ensemble-realmlp-catboost-xgboost/3-model-ensemble-realmlp-catboost-xgboost.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": false,
+      "issues": [
+        "no submission file found"
+      ]
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": null,
+    "verdict": "EDA"
+  },
+  {
+    "slug": "sai10py/du-du-du-du",
+    "title": "Du du du du...",
+    "votes": 19,
+    "tag": "sai10py_du-du-du-du",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/sai10py_du-du-du-du/submission.csv",
+      "log": "harvest/v18/sai10py_du-du-du-du/du-du-du-du.log"
+    },
+    "claimed_oof_auc": 0.96026,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.19778720714274362,
+      "min": 0.0020896240435029,
+      "max": 0.9926208673971164
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9742493221884672,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "svanikkolli/f1-lap-by-lap-prediction-engine",
+    "title": "F1 Lap-by-Lap Prediction Engine",
+    "votes": 19,
+    "tag": "svanikkolli_f1-lap-by-lap-prediction-engine",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": "harvest/v18/svanikkolli_f1-lap-by-lap-prediction-engine/submission_v7_solo.csv",
+      "log": "harvest/v18/svanikkolli_f1-lap-by-lap-prediction-engine/f1-lap-by-lap-prediction-engine.log"
+    },
+    "claimed_oof_auc": 0.95082,
+    "submission_diag": {
+      "valid": true,
+      "issues": [],
+      "pred_col": "PitNextLap",
+      "n_rows": 188165,
+      "mean": 0.19682119967759815,
+      "min": 0.001,
+      "max": 0.9933983534216864
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": 0.9840506149882299,
+    "verdict": "INCLUDE-TEST"
+  },
+  {
+    "slug": "aidensong123/f1-pit-stops-eda-tyre-life-pit-waves-drift",
+    "title": "F1 Pit Stops | EDA: Tyre-Life, Pit Waves & Drift",
+    "votes": 19,
+    "tag": "aidensong123_f1-pit-stops-eda-tyre-life-pit-waves-drift",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": null,
+      "log": "harvest/v18/aidensong123_f1-pit-stops-eda-tyre-life-pit-waves-drift/f1-pit-stops-eda-tyre-life-pit-waves-drift.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": false,
+      "issues": [
+        "no submission file found"
+      ]
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": null,
+    "verdict": "EDA"
+  },
+  {
+    "slug": "sidcodegg/tabpfn-is-all-you-need",
+    "title": "Tabpfn is all you need?",
+    "votes": 18,
+    "tag": "sidcodegg_tabpfn-is-all-you-need",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": null,
+      "log": "harvest/v18/sidcodegg_tabpfn-is-all-you-need/tabpfn-is-all-you-need.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": false,
+      "issues": [
+        "no submission file found"
+      ]
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": null,
+    "verdict": "EDA"
+  },
+  {
+    "slug": "masayakawamata/s6e5-stacking-vibe-coding",
+    "title": "S6E5 | Stacking - Vibe Coding",
+    "votes": 18,
+    "verdict": "EXCEPTION",
+    "error": "'verdict'"
+  },
+  {
+    "slug": "djenkivanov/s6e5-minimal-starter-xgb-oof",
+    "title": "S6E5 | Minimal Starter XGB & OOF",
+    "votes": 18,
+    "tag": "djenkivanov_s6e5-minimal-starter-xgb-oof",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": null,
+      "log": "harvest/v18/djenkivanov_s6e5-minimal-starter-xgb-oof/s6e5-minimal-starter-xgb-oof.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": false,
+      "issues": [
+        "no submission file found"
+      ]
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": null,
+    "verdict": "EDA"
+  },
+  {
+    "slug": "yusufmurtaza01/f1-pit-stop-prediction-comprehensive-eda",
+    "title": "F1 Pit Stop Prediction \u2014 Comprehensive EDA",
+    "votes": 18,
+    "tag": "yusufmurtaza01_f1-pit-stop-prediction-comprehensive-eda",
+    "claimed_lb": null,
+    "download_failed": false,
+    "download_err": null,
+    "files_found": {
+      "oof": null,
+      "submission": null,
+      "log": "harvest/v18/yusufmurtaza01_f1-pit-stop-prediction-comprehensive-eda/f1-pit-stop-prediction-comprehensive-eda.log"
+    },
+    "claimed_oof_auc": null,
+    "submission_diag": {
+      "valid": false,
+      "issues": [
+        "no submission file found"
+      ]
+    },
+    "oof_diag": {
+      "valid": false,
+      "issues": [
+        "no OOF file found"
+      ]
+    },
+    "rho_with_anchor": null,
+    "verdict": "EDA"
   }
 ]
