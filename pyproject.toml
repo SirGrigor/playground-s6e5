@@ -1,0 +1,74 @@
+[project]
+name = "playground-s6e5"
+version = "1.0.0"
+description = "Kaggle Playground S6E5 — F1 Pit Stops prediction (binary AUC). Progressive blend pipeline with curated public-OOF stacking."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Ilja Grigorjev", email = "grigorjev.ilja@gmail.com" }]
+keywords = ["kaggle", "machine-learning", "blending", "tabular", "playground-series"]
+
+# Core dependencies — ranges, not exact pins. Tested combinations work; future
+# versions probably work too. Pin tighter only if regressions appear.
+dependencies = [
+    "numpy>=1.26,<3.0",
+    "pandas>=2.1,<4.0",
+    "scipy>=1.10,<2.0",
+    "scikit-learn>=1.3,<2.0",      # 1.3+ for CV-safe TargetEncoder
+    "lightgbm>=4.0,<5.0",
+    "xgboost>=2.0,<4.0",            # 2.0+ for enable_categorical
+    "pyarrow>=14.0",
+]
+
+[project.optional-dependencies]
+# Neural tabular models (RealMLP_TD, TabM_D)
+neural = [
+    "pytabkit>=1.5,<2.0",
+    "torch>=2.0,<3.0",
+    "pytorch-lightning>=2.0,<3.0",
+]
+# Gradient boosting variants
+boosting = [
+    "catboost>=1.2,<2.0",
+]
+# Variant factory (ml-variant-factory by SirGrigor — pulled directly from GitHub)
+factory = [
+    "ml-variant-factory @ git+https://github.com/SirGrigor/ml-variant-factory@v0.1.2",
+]
+# Kaggle CLI for harvesting + submission
+kaggle = [
+    "kaggle>=1.6",
+]
+# Everything for the full pipeline
+all = [
+    "playground-s6e5[neural,boosting,factory,kaggle]",
+]
+# Development
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.6",
+]
+
+[project.urls]
+Repository = "https://github.com/SirGrigor/playground-s6e5"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --tb=short"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "W"]
+ignore = ["E501"]
