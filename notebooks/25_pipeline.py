@@ -458,7 +458,16 @@ def main():
     p.add_argument("--threshold", type=float, default=1e-5)
     p.add_argument("--max-iter", type=int, default=20)
     p.add_argument("--skip-phase-b", action="store_true",
-                   help="Skip the test-only public mix variants")
+                   help="Skip the test-only public mix variants (all-N average)")
+    p.add_argument("--skip-phase-c", action="store_true",
+                   help="Skip the curated top-K LB-filtered mix variants")
+    p.add_argument("--phase-c-k", default="3,4,5",
+                   help="Top-K values for Phase C curated mix (default: 3,4,5)")
+    p.add_argument("--phase-c-ratios", default="0.30,0.50,0.70",
+                   help="Ratios for Phase C curated mix (default: 0.30,0.50,0.70)")
+    p.add_argument("--phase-c-claimed-lb-min", type=float, default=None,
+                   help="Filter public to claimed_lb ≥ this in Phase C. "
+                        "Default: baseline_lb - 0.001")
     args = p.parse_args()
 
     # ---- Stage 0: Pre-flight ----
@@ -690,6 +699,74 @@ def main():
                 print(f"  → {ver}: {1-alpha:.2f} baseline + {alpha:.2f} public_mix")
         print()
 
+    # ---- Stage 5b: Phase C — curated top-K LB-filtered mix (L19 from S6E5) ----
+    phase_c_count = 0
+    phase_c_best_predicted_lb = None
+    phase_c_best_name = None
+    if not args.skip_phase_c:
+        print("=" * 70)
+        print("STAGE 5b — Phase C (curated top-K LB-filtered mix)")
+        print("=" * 70)
+        from src.curated import load_public_subset, ratio_sweep
+        threshold = args.phase_c_claimed_lb_min
+        if threshold is None:
+            threshold = current_holdout_auc - 0.001  # auto: baseline - 0.001
+        public_subs = load_public_subset(manifest, claimed_lb_threshold=threshold)
+        print(f"Public candidates (claimed_lb ≥ {threshold:.5f}): {len(public_subs)}")
+
+        if public_subs:
+            K_values = [int(k) for k in args.phase_c_k.split(",")]
+            ratios = [float(r) for r in args.phase_c_ratios.split(",")]
+            print(f"Sweep: K ∈ {K_values} × ratios ∈ {ratios} → {len(K_values)*len(ratios)} variants")
+
+            results = ratio_sweep(
+                baseline_test=current_test,
+                public_subs=public_subs,
+                test_ids=test_ids,
+                baseline_lb_estimate=current_holdout_auc - 0.0005,
+                K_values=K_values,
+                ratios=ratios,
+                name_prefix="phase_c",
+            )
+            print(f"\nTop 5 Phase C candidates (by predicted LB):")
+            print(f"  {'Name':<22} {'K':>2} {'Ratio':>5}  {'PubAvgLB':>8}  {'ρ':>6}  {'PredLB':>8}")
+            for r in results[:5]:
+                print(f"  {r.name:<22} {r.K:>2} {r.ratio:>5.2f}  "
+                      f"{r.public_avg_claimed_lb:>8.5f}  {r.rho_with_baseline:>6.4f}  "
+                      f"{r.predicted_lb:>8.5f}")
+            print()
+
+            for r in results:
+                ver = next_release_version()
+                out_dir = PROBS / ver
+                out_dir.mkdir(parents=True, exist_ok=True)
+                np.save(out_dir / "test.npy", r.test_predictions)
+                pd.DataFrame({ID: test_ids, TARGET: r.test_predictions}).to_csv(
+                    SUBMISSIONS / f"{ver}.csv", index=False
+                )
+                log_release({
+                    "version": ver, "parent": current_name,
+                    "added": f"curated_mix(K={r.K}, ratio={r.ratio}, "
+                             f"tags={','.join(r.selected_tags[:3])}...)",
+                    "added_source": "curated_mix",
+                    "weights": {"baseline": float(1 - r.ratio), "curated_public": float(r.ratio)},
+                    "phase_c_predicted_lb": float(r.predicted_lb),
+                    "phase_c_rho_with_baseline": float(r.rho_with_baseline),
+                    "phase_c_public_avg_claimed_lb": float(r.public_avg_claimed_lb),
+                    "oof_before": float(current_oof_auc), "oof_after": None,
+                    "oof_delta": None,
+                    "holdout_before": float(current_holdout_auc),
+                    "holdout_after": None,
+                    "decision": "PHASE_C_VARIANT",
+                })
+                phase_c_count += 1
+                if phase_c_best_predicted_lb is None or r.predicted_lb > phase_c_best_predicted_lb:
+                    phase_c_best_predicted_lb = r.predicted_lb
+                    phase_c_best_name = ver
+        else:
+            print("  (no candidates passed claimed_lb filter — try lowering threshold)")
+        print()
+
     # ---- Stage 6: Sync back ----
     print("=" * 70)
     print("STAGE 6 — Sync to Drive")
@@ -709,7 +786,16 @@ def main():
     for sub in sorted(SUBMISSIONS.glob("v18.*.csv")):
         print(f"  {sub.name}")
     print()
-    print(f"RECOMMENDED SUBMISSION: submissions/{phase_a_final}.csv")
+    if phase_c_count > 0:
+        print(f"Phase C produced {phase_c_count} curated-mix variants.")
+        print(f"  Best by predicted LB: {phase_c_best_name} (predicted {phase_c_best_predicted_lb:.5f})")
+        print(f"  All Phase C submissions in submissions/v18.NNN.csv (see releases.jsonl filter for PHASE_C_VARIANT)")
+        print()
+        print(f"RECOMMENDED SUBMISSIONS:")
+        print(f"  1. {phase_c_best_name}.csv  (Phase C top by predicted LB — gamble on curated diversity)")
+        print(f"  2. {phase_a_final}.csv  (Phase A holdout-validated — safe pick)")
+    else:
+        print(f"RECOMMENDED SUBMISSION: submissions/{phase_a_final}.csv")
     print(f"\nLocal Kaggle command:")
     print(f"  kaggle competitions submit -c playground-series-s6e5 \\")
     print(f"      -f submissions/{phase_a_final}.csv \\")
