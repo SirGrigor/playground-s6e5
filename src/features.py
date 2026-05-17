@@ -373,14 +373,25 @@ def build_lag_features(
     big["is_first_in_RDY"] = big["LapTime (s)_lag1"].isna().astype("int8")
     new_cols.append("is_first_in_RDY")
 
-    # NaN fill: -1 sentinel. RealMLP's normalizer treats this as just a value
-    # within the cat-encoded path or numeric path; lightgbm/xgb handle the
-    # -1 marker via standard missing-value splits.
+    # NaN fill strategy:
+    # - lag1 columns: median of valid (non-NaN) values from the union. RealMLP's
+    #   normalizer/PLR sees a typical value instead of an out-of-distribution
+    #   sentinel. is_first_in_RDY flags rows where the lag is imputed so the
+    #   network can gate the lag features on that indicator.
+    # - delta1 columns: 0 (no change). The "no prev lap" rows now contribute
+    #   zero to delta-based splits, which is the semantically correct default.
+    # Note: v20.001 used -1 sentinel and lost -0.00075 holdout vs v14 because
+    # the -1 sentinel and the resulting `current - (-1) = current + 1` deltas
+    # poisoned RealMLP's continuous normalization.
     for c in new_cols:
-        if big[c].dtype.kind == "f":
-            big[c] = big[c].fillna(-1.0).astype("float32")
-        elif big[c].dtype.kind in ("i", "u"):
-            big[c] = big[c].fillna(-1).astype("int32")
+        if c == "is_first_in_RDY":
+            big[c] = big[c].astype("int8")
+            continue
+        if c.endswith("_delta1"):
+            big[c] = big[c].fillna(0.0).astype("float32")
+        else:
+            med = float(big[c].median())
+            big[c] = big[c].fillna(med).astype("float32")
 
     # Split back, preserve original row order by sorting on _orig_pos.
     out: dict[str, pd.DataFrame] = {}
