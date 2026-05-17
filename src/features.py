@@ -281,6 +281,123 @@ def yekenot_fe_transform(df: pd.DataFrame, state: dict) -> pd.DataFrame:
     return df
 
 
+# =========================================================================
+# Lag Block — past-lap features computed across pool ∪ holdout ∪ test.
+#
+# Motivation (2026-05-17 data audit):
+#   The dataset is a random LapNumber-level split of full F1 stints. Within
+#   (Race, Driver, Year), train+test combined have gap=1 between consecutive
+#   laps for 260K rows — i.e. rows are lap-interleaved across train/test/holdout.
+#   Computing lag features on the UNION (sorted by R,D,Y,LapNumber) lets each
+#   row see its actual previous-lap observations as features.
+#
+# Safety: only PAST lags. Never lead features (the next lap's LapTime is
+# affected by the pit decision at end of current lap → target leakage).
+# Target column PitNextLap is never used as a lag source.
+#
+# What we lag:
+#   LapTime (s), LapTime_Delta, Cumulative_Degradation, Position,
+#   Position_Change, TyreLife, PitStop, Stint
+#
+# What we derive: current - lag1 (per-lap delta), is_first_lap_in_group flag.
+# =========================================================================
+
+LAG_BASE_COLS = [
+    "LapTime (s)",
+    "LapTime_Delta",
+    "Cumulative_Degradation",
+    "Position",
+    "Position_Change",
+    "TyreLife",
+    "PitStop",
+    "Stint",
+]
+
+
+def build_lag_features(
+    pool: pd.DataFrame,
+    holdout: pd.DataFrame,
+    test: pd.DataFrame,
+    lags: tuple[int, ...] = (1,),
+    add_deltas: bool = True,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, list[str]]:
+    """Compute past-lag features across pool ∪ holdout ∪ test.
+
+    Steps:
+      1. Tag each row with its source partition (pool/holdout/test).
+      2. Concatenate and sort by (Race, Driver, Year, LapNumber).
+      3. Group by (Race, Driver, Year) and shift by each lag for LAG_BASE_COLS.
+         Missing (no previous lap) → NaN, filled with -1 (RealMLP handles NaN
+         via its own imputer, but lightgbm/xgb want -1 sentinels).
+      4. Optionally add per-row delta features: current - lag1.
+      5. Split back into (pool, holdout, test) preserving original row order
+         via the id column.
+
+    Returns: (pool_out, holdout_out, test_out, new_feature_cols).
+    """
+    pool = pool.copy()
+    holdout = holdout.copy()
+    test = test.copy()
+
+    pool["_src"] = "pool"
+    holdout["_src"] = "holdout"
+    test["_src"] = "test"
+
+    # Capture original positional order for each partition.
+    pool["_orig_pos"] = np.arange(len(pool))
+    holdout["_orig_pos"] = np.arange(len(holdout))
+    test["_orig_pos"] = np.arange(len(test))
+
+    keep_cols = ["id", "Race", "Driver", "Year", "LapNumber", "_src", "_orig_pos"] + LAG_BASE_COLS
+    # PitStop / Stint are already int; keep them.
+    big = pd.concat([pool[keep_cols], holdout[keep_cols], test[keep_cols]], ignore_index=True)
+    big = big.sort_values(["Race", "Driver", "Year", "LapNumber"], kind="stable").reset_index(drop=True)
+
+    grp = big.groupby(["Race", "Driver", "Year"], sort=False)
+    new_cols: list[str] = []
+    for k in lags:
+        for col in LAG_BASE_COLS:
+            new_name = f"{col}_lag{k}"
+            big[new_name] = grp[col].shift(k)
+            new_cols.append(new_name)
+
+    if add_deltas:
+        for col in LAG_BASE_COLS:
+            lag1 = f"{col}_lag1"
+            if lag1 in big.columns:
+                delta_name = f"{col}_delta1"
+                big[delta_name] = big[col] - big[lag1]
+                new_cols.append(delta_name)
+
+    # is_first_lap_in_group: 1 if no previous lap in (R,D,Y), else 0.
+    big["is_first_in_RDY"] = big["LapTime (s)_lag1"].isna().astype("int8")
+    new_cols.append("is_first_in_RDY")
+
+    # NaN fill: -1 sentinel. RealMLP's normalizer treats this as just a value
+    # within the cat-encoded path or numeric path; lightgbm/xgb handle the
+    # -1 marker via standard missing-value splits.
+    for c in new_cols:
+        if big[c].dtype.kind == "f":
+            big[c] = big[c].fillna(-1.0).astype("float32")
+        elif big[c].dtype.kind in ("i", "u"):
+            big[c] = big[c].fillna(-1).astype("int32")
+
+    # Split back, preserve original row order by sorting on _orig_pos.
+    out: dict[str, pd.DataFrame] = {}
+    for src, base in [("pool", pool), ("holdout", holdout), ("test", test)]:
+        slc = big[big["_src"] == src][["id"] + new_cols + ["_orig_pos"]]
+        slc = slc.sort_values("_orig_pos").drop(columns="_orig_pos").reset_index(drop=True)
+        # Merge back onto base by id to be defensive about any row-order drift.
+        merged = base.drop(columns=["_src", "_orig_pos"]).merge(slc, on="id", how="left")
+        # Final dtype safety
+        for c in new_cols:
+            if merged[c].dtype.kind == "f":
+                merged[c] = merged[c].astype("float32")
+        out[src] = merged
+
+    return out["pool"], out["holdout"], out["test"], new_cols
+
+
 def yekenot_feature_lists(state: dict) -> tuple[list[str], list[str]]:
     """After running yekenot_fe_fit, derive (feature_cols, categorical_cols).
 
