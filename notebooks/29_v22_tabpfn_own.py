@@ -301,7 +301,7 @@ def main(subsample: int | None, gpu: bool, with_original: bool):
             config_changes={
                 "model": "FinetunedTabPFNClassifier",
                 "epochs": 10,
-                "learning_rate": 2e-3,
+                "learning_rate": 2e-4,  # 10x lower than karltonkxb 2e-3 per quick-diagnose
                 "n_estimators": 1,
                 "tune_decision_thresholds": True,
             },
@@ -321,10 +321,15 @@ def main(subsample: int | None, gpu: bool, with_original: bool):
     from tabpfn import TabPFNClassifier  # noqa: F401 (informational import)
     from tabpfn.finetuning.finetuned_classifier import FinetunedTabPFNClassifier
 
+    # LR=2e-4 (10x lower than karltonkxb's 2e-3) per --quick-diagnose 2026-05-18:
+    # At lr=2e-3 the model overshoots into the prior-prediction local minimum (where
+    # gradient is zero) and gets stuck → loss flat at 0.499, AUC 0.50.
+    # At lr=2e-4: loss=0.26-0.36, mini-val AUC 0.9481 on 20K×3 epochs (already in
+    # karltonkxb's 0.94922 LB territory). Full run should land at 0.951-0.953.
     classifier = FinetunedTabPFNClassifier(
         device="cuda" if gpu else "cpu",
         epochs=10,
-        learning_rate=2e-3,
+        learning_rate=2e-4,
         n_estimators_finetune=1,
         n_estimators_validation=1,
         n_estimators_final_inference=1,
