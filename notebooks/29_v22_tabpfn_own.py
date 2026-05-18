@@ -8,17 +8,20 @@ Pre-experiment checklist (UPDATED 2026-05-18 after v22.100 attempt failed):
   cardinality up to thousands (LapTime_cat_ ≈ 4000 unique values), and
   treating them as numeric is worse (factorize indices are arbitrary).
 
-  v22.200 (this attempt): simplified yekenot FE (15 numeric + 5 cat).
-              Drops the 13 floor-factorize cats + 2 KBins entirely. Keeps
-              the high-value Yekenot signals: arith ratios, count encodings,
-              base 5 low-card cats. This matches karltonkxb's working scheme
-              + yekenot's count-encoding extras. Expected: solo LB 0.949-0.952.
-  Parent: karltonkxb/tabpfn-3-s6e5-predicting-f1-pit-stops (0.94922) + simplified yekenot
-  Predicted Δ holdout vs karltonkxb (0.94922): +0.000 to +0.003
-  Predicted blend lift vs safar1_95449: 0 to +0.0003 (only if solo ≥ 0.952)
-  Confidence: medium — karltonkxb already showed simple-FE TabPFN works at 0.949
-              on this data. Count encodings + Year_cat_/PitStop_cat_ may add a
-              little signal beyond his scheme.
+  v22.200 attempt: lr=2e-4, simplified FE, 10 epochs → holdout AUC 0.94647.
+              Loss curve: best at epoch 6 (0.2148), drifted up to epoch 10
+              (0.2317). Classic no-early-stopping overshoot — train loss
+              kept reporting but holdout regressed silently after epoch 6.
+
+  v22.300 (this attempt): same config as v22.200 BUT stop at 6 epochs.
+              Should land near the v22.200 epoch-6 sweet spot: holdout
+              AUC ~0.949-0.950. Still likely below 0.95449 blend threshold,
+              but cleanest signal of whether our TabPFN training is sound.
+  Parent: karltonkxb/tabpfn-3-s6e5-predicting-f1-pit-stops (0.94922)
+  Predicted Δ holdout vs v22.200 (0.94647): +0.003 to +0.005
+  Predicted Δ holdout vs karltonkxb (0.94922): -0.000 to +0.001
+  Confidence: medium-high — we have direct empirical evidence (v22.200
+              loss=0.2148 at epoch 6) that this peak is achievable.
   Risk: TabPFN's prior may be less aligned with synthetic Playground data than
         RealMLP. If solo lands at 0.949-0.951, blend won't help — pivot to
         karltonkxb-FE-style fine-tuning or more ensembles.
@@ -281,27 +284,21 @@ def main(subsample: int | None, gpu: bool, with_original: bool):
     exp = None
     if not is_sanity:
         exp = Experiment.start(
-            version="v22_tabpfn_simplified",
-            parent="v14_yekenot_repro",
+            version="v22_tabpfn_epochs6",
+            parent="v22_tabpfn_simplified",
             hypothesis=(
-                "v22.100 attempt with full yekenot FE collapsed to AUC 0.50 — 13 "
-                "floor-factorize cats (cardinality up to ~4000) broke TabPFN's "
-                "embedding tables. Simplified FE: 15 numerics (8 raw + 2 yekenot "
-                "arith + 5 count encodings) + 5 low-card cats (Driver/Compound/"
-                "Race/Year_cat_/PitStop_cat_). Matches karltonkxb's working scheme "
-                "(LB 0.94922) plus yekenot's count-encoding extras. Predicted solo: "
-                "0.949-0.952. Blend lift vs safar1_95449 only realistic if solo ≥ 0.952."
+                "v22.200 overshot: loss peaked at epoch 6 (0.2148) then drifted "
+                "to 0.2317 at epoch 10. Holdout AUC 0.94647 reflected the drifted "
+                "endpoint, not the actual model capacity. Stop at epoch 6 — the "
+                "empirically observed sweet spot. Predicted holdout: 0.949-0.950."
             ),
-            predicted_delta=0.0,
+            predicted_delta=0.003,  # vs v22.200's 0.94647 → predicted ~0.9495
             confidence="medium",
-            feature_changes=[
-                "+ simplified yekenot FE (dropped 13 floor-factorize cats + 2 KBins)",
-                "+ sacred 20% holdout for validation",
-            ],
+            feature_changes=[],  # same FE as v22.200
             config_changes={
                 "model": "FinetunedTabPFNClassifier",
-                "epochs": 10,
-                "learning_rate": 2e-4,  # 10x lower than karltonkxb 2e-3 per quick-diagnose
+                "epochs": 6,           # was 10 — fix for overshoot
+                "learning_rate": 2e-4,
                 "n_estimators": 1,
                 "tune_decision_thresholds": True,
             },
@@ -321,14 +318,13 @@ def main(subsample: int | None, gpu: bool, with_original: bool):
     from tabpfn import TabPFNClassifier  # noqa: F401 (informational import)
     from tabpfn.finetuning.finetuned_classifier import FinetunedTabPFNClassifier
 
-    # LR=2e-4 (10x lower than karltonkxb's 2e-3) per --quick-diagnose 2026-05-18:
-    # At lr=2e-3 the model overshoots into the prior-prediction local minimum (where
-    # gradient is zero) and gets stuck → loss flat at 0.499, AUC 0.50.
-    # At lr=2e-4: loss=0.26-0.36, mini-val AUC 0.9481 on 20K×3 epochs (already in
-    # karltonkxb's 0.94922 LB territory). Full run should land at 0.951-0.953.
+    # LR=2e-4 (10x lower than karltonkxb's 2e-3) per --quick-diagnose 2026-05-18.
+    # epochs=6 per v22.200 observation: loss peaked low at epoch 6 (0.2148) then
+    # drifted up to 0.2317 at epoch 10 (silent overshoot since training loss was
+    # reported but holdout regressed). Stop at the observed sweet spot.
     classifier = FinetunedTabPFNClassifier(
         device="cuda" if gpu else "cpu",
-        epochs=10,
+        epochs=6,
         learning_rate=2e-4,
         n_estimators_finetune=1,
         n_estimators_validation=1,
@@ -367,14 +363,14 @@ def main(subsample: int | None, gpu: bool, with_original: bool):
     print(f"Total runtime:                {fit_time + pred_time:.1f}s")
 
     # --- Save artifacts ---
-    out_dir = PROBS / "v22_tabpfn_simplified"
+    out_dir = PROBS / "v22_tabpfn_epochs6"
     out_dir.mkdir(parents=True, exist_ok=True)
     np.save(out_dir / "holdout.npy", holdout_pred)
     np.save(out_dir / "test.npy", test_pred)
     print(f"\nSaved holdout/test probs to {out_dir}/")
 
     sub = pd.DataFrame({ID: test_fe[ID].to_numpy(), TARGET: test_pred})
-    sub_path = SUBMISSIONS / "v22.200.csv"  # .200 = simplified-FE retry; .2XX for mixes
+    sub_path = SUBMISSIONS / "v22.300.csv"  # .300 = epochs-6 retry
     sub.to_csv(sub_path, index=False)
     print(f"Saved submission to {sub_path}")
 
@@ -382,9 +378,24 @@ def main(subsample: int | None, gpu: bool, with_original: bool):
     print("\n" + "=" * 70)
     print("Step 4 — Math-driven blend analysis vs current best (safar1_95449)")
     print("=" * 70)
+    # Resolve safar1_95449 location: try sub dir, harvest dir, then download via kaggle CLI
     safar_path = SUBMISSIONS / "v22.001.csv"
     if not safar_path.exists():
         safar_path = Path("harvest/v21/safar1_lb-score-0-95449/submission.csv")
+    if not safar_path.exists():
+        print("  safar1_95449 not found locally — attempting kaggle CLI download...")
+        try:
+            import subprocess
+            fallback_dir = Path("harvest/v21/safar1_lb-score-0-95449")
+            fallback_dir.mkdir(parents=True, exist_ok=True)
+            subprocess.run([
+                "kaggle", "kernels", "output", "safar1/lb-score-0-95449",
+                "-p", str(fallback_dir)
+            ], check=True, capture_output=True, timeout=120)
+            safar_path = fallback_dir / "submission.csv"
+            print(f"  downloaded safar1_95449 to {safar_path}")
+        except Exception as e:
+            print(f"  kaggle download failed: {e}")
     if safar_path.exists():
         test_ids = test_fe[ID].to_numpy()
         safar = pd.read_csv(safar_path).set_index(ID).loc[test_ids][TARGET].to_numpy()
@@ -410,7 +421,7 @@ def main(subsample: int | None, gpu: bool, with_original: bool):
         print(f"\n  → MATH RECOMMENDS: w_v22={best_w:.3f}, predicted LB={best_pred:.5f}")
         if best_pred > safar_lb + 0.00003:
             blend = (1 - best_w) * rank_normalize(safar) + best_w * rank_normalize(test_pred)
-            mix_path = SUBMISSIONS / "v22.201.csv"
+            mix_path = SUBMISSIONS / "v22.301.csv"
             pd.DataFrame({ID: test_ids, TARGET: blend}).to_csv(mix_path, index=False)
             print(f"  → saved math-optimal blend to {mix_path}")
         else:
