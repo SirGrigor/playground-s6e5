@@ -181,7 +181,7 @@ def main(subsample: int | None, gpu: bool, with_original: bool):
                 "≥0.953, blend lifts to ~0.95516 (+0.00067)."
             ),
             predicted_delta=0.003,
-            confidence="medium-high",
+            confidence="medium",
             feature_changes=[
                 "+ yekenot FE (vs karltonkxb's domain FE)",
                 "+ sacred 20% holdout for validation",
