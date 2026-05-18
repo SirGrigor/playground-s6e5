@@ -23,8 +23,12 @@ PREREQUISITE — TabPFN token (one-time setup):
   1. Register/login at https://ux.priorlabs.ai
   2. Accept license on Licenses tab
   3. Copy API key from https://ux.priorlabs.ai/account
-  4. On Kaggle: Add to Secrets as "TABPFN_TOKEN"
-     OR on Colab: in cell 1 set os.environ["TABPFN_TOKEN"] = "your-key"
+  4. Add it ONCE — choose whichever environment you use:
+     • Colab: click the 🔑 key icon in left sidebar → Add new secret
+              Name: TABPFN_TOKEN, Value: <your-key>, toggle "Notebook access" ON
+     • Kaggle notebook: Add-ons → Secrets → Add new secret named TABPFN_TOKEN
+     • Local shell: add `export TABPFN_TOKEN=<your-key>` to ~/.bashrc, then `source ~/.bashrc`
+  The notebook auto-loads from Colab/Kaggle Secrets, then env var, then local file.
 
 Usage:
   python notebooks/29_v22_tabpfn_own.py --subsample 5000   # local sanity if pytabkit installed
@@ -67,16 +71,57 @@ def predict_proba_in_batches(model, X_data, batch_size: int = 50_000) -> np.ndar
     return np.concatenate(all_probas)
 
 
+def load_tabpfn_token() -> str:
+    """Load TABPFN_TOKEN from (in order): env, Colab Secrets, Kaggle Secrets, local file.
+
+    Mirrors the same UX as KAGGLE_API_TOKEN — set it once in your environment,
+    then every notebook/script picks it up automatically.
+    """
+    tok = os.environ.get("TABPFN_TOKEN", "")
+    if tok:
+        return tok
+    # Colab Secrets (sidebar key icon)
+    try:
+        from google.colab import userdata  # type: ignore
+        tok = userdata.get("TABPFN_TOKEN")
+        if tok:
+            os.environ["TABPFN_TOKEN"] = tok
+            print("  TABPFN_TOKEN loaded from Colab Secrets.")
+            return tok
+    except Exception:
+        pass
+    # Kaggle Secrets (Add-ons → Secrets)
+    try:
+        from kaggle_secrets import UserSecretsClient  # type: ignore
+        tok = UserSecretsClient().get_secret("TABPFN_TOKEN")
+        if tok:
+            os.environ["TABPFN_TOKEN"] = tok
+            print("  TABPFN_TOKEN loaded from Kaggle Secrets.")
+            return tok
+    except Exception:
+        pass
+    # Local file fallback (gitignored)
+    for candidate in [Path("tabpfn_token.txt"), Path.home() / ".tabpfn_token"]:
+        if candidate.exists():
+            tok = candidate.read_text().strip()
+            os.environ["TABPFN_TOKEN"] = tok
+            print(f"  TABPFN_TOKEN loaded from {candidate}.")
+            return tok
+    return ""
+
+
 def main(subsample: int | None, gpu: bool, with_original: bool):
     print("=" * 70)
     print("v22 — Own FinetunedTabPFN on yekenot FE + sacred holdout")
     print("=" * 70)
 
     # Step 0: require TabPFN token (cloud fine-tuning) unless local sanity
-    if not subsample and not os.environ.get("TABPFN_TOKEN"):
-        print("ERROR: TABPFN_TOKEN env var not set. See header for setup instructions.")
-        print("Aborting before any heavy work.")
-        sys.exit(1)
+    if not subsample:
+        if not load_tabpfn_token():
+            print("\nERROR: TABPFN_TOKEN not found in any source.")
+            print("  Tried: env var, Colab Secrets, Kaggle Secrets, ~/.tabpfn_token, ./tabpfn_token.txt")
+            print("  See header docstring for one-time setup steps.")
+            sys.exit(1)
 
     pool = load_train_pool()
     holdout = load_holdout()
