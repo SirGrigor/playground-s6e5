@@ -431,3 +431,42 @@ def yekenot_feature_lists(state: dict) -> tuple[list[str], list[str]]:
     )
     cat_feats = list(YEKENOT_CAT_COLS) + floor_cats + bins
     return numeric_feats, cat_feats
+
+
+def yekenot_feature_lists_for_tabpfn(state: dict) -> tuple[list[str], list[str]]:
+    """TabPFN-friendly variant: drop floor-factorize codes + KBins entirely.
+
+    Why: TabPFN handles low-card cats well (≤ ~30 unique values) via small
+    embedding tables. Yekenot's floor-factorize cols have cardinality in the
+    thousands (LapTime cat ≈ 4000 unique values), which:
+      - Treated as cat: breaks the embedding table → model collapses to prior
+      - Treated as numeric: arbitrary factorize index → distance has no meaning,
+        confuses the transformer's distance-based attention
+
+    Observed in v22.100 attempt 2026-05-18: holdout AUC 0.50009, loss plateau
+    at 0.499 = log-loss at base rate (0.199). Classic embedding-collapse signature.
+
+    Karltonkxb's working notebook (LB 0.94922) used only simple domain features
+    with ~4 low-card cats — no floor-factorize, no KBins. We match that scheme.
+
+    Kept categorical (5 features, max cardinality 887):
+      Driver, Compound, Race, Year_cat_ (4), PitStop_cat_ (2)
+    Kept numeric (15 features, all meaningful continuous/count):
+      LapNumber, Stint, TyreLife, LapTime (s), LapTime_Delta,
+      Cumulative_Degradation, RaceProgress, Position_Change,
+      _LapNumber_/_RaceProgress, _TyreLife_/_LapNumber (yekenot arith),
+      _Driver_count, _Compound_count, _Race_count,
+      _Year_cat_count, _PitStop_cat_count (yekenot counts)
+    Dropped: 13 floor-factorize cats + 2 KBin codes.
+    """
+    counts = [
+        f"_{col}_count" if col in YEKENOT_CAT_COLS else f"_{col[:-1]}_count"
+        for col in (list(YEKENOT_CAT_COLS) + ["Year_cat_", "PitStop_cat_"])
+    ]
+    numeric_feats = (
+        ["LapNumber", "Stint", "TyreLife", "LapTime (s)", "LapTime_Delta",
+         "Cumulative_Degradation", "RaceProgress", "Position_Change"]
+        + state["arith_cols"] + counts
+    )
+    cat_feats = list(YEKENOT_CAT_COLS) + ["Year_cat_", "PitStop_cat_"]
+    return numeric_feats, cat_feats

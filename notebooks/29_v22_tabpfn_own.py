@@ -1,17 +1,24 @@
-"""v22 — Own-trained FinetunedTabPFN on yekenot FE + sacred holdout protocol.
+"""v22 — Own-trained FinetunedTabPFN on simplified yekenot FE + sacred holdout.
 
-Pre-experiment checklist:
-  Hypothesis: karltonkxb's vanilla TabPFN-3 + domain FE got solo LB 0.94922
-              (49 min on Kaggle GPU). With yekenot FE (which gave RealMLP
-              +0.0037 lift, v9→v14) layered on the same TabPFN training
-              backbone, we should hit ≥0.952 solo. At ≥0.952 solo and
-              ρ≈0.972 with safar1_95449 (currently best at 0.95449),
-              math says blend at w≈0.30 lifts to ~0.9547 (+0.00021 LB).
-              At ≥0.953 solo, blend lifts to ~0.95516 (+0.00067 LB).
-  Parent: karltonkxb/tabpfn-3-s6e5-predicting-f1-pit-stops (0.94922) + v14 FE
-  Predicted Δ holdout vs karltonkxb baseline: +0.002 to +0.004
-  Predicted blend lift vs safar1_95449: +0.00021 to +0.00067 (depending on solo strength)
-  Confidence: medium-high — yekenot FE proven on RealMLP; TabPFN family responds well to good FE
+Pre-experiment checklist (UPDATED 2026-05-18 after v22.100 attempt failed):
+
+  v22.100 attempt: full yekenot FE (33 features, 18 categorical) → holdout
+  AUC 0.50009. Loss plateaued at 0.499 = log-loss at base rate. Classic
+  embedding-collapse: TabPFN couldn't handle 13 floor-factorize cats with
+  cardinality up to thousands (LapTime_cat_ ≈ 4000 unique values), and
+  treating them as numeric is worse (factorize indices are arbitrary).
+
+  v22.200 (this attempt): simplified yekenot FE (15 numeric + 5 cat).
+              Drops the 13 floor-factorize cats + 2 KBins entirely. Keeps
+              the high-value Yekenot signals: arith ratios, count encodings,
+              base 5 low-card cats. This matches karltonkxb's working scheme
+              + yekenot's count-encoding extras. Expected: solo LB 0.949-0.952.
+  Parent: karltonkxb/tabpfn-3-s6e5-predicting-f1-pit-stops (0.94922) + simplified yekenot
+  Predicted Δ holdout vs karltonkxb (0.94922): +0.000 to +0.003
+  Predicted blend lift vs safar1_95449: 0 to +0.0003 (only if solo ≥ 0.952)
+  Confidence: medium — karltonkxb already showed simple-FE TabPFN works at 0.949
+              on this data. Count encodings + Year_cat_/PitStop_cat_ may add a
+              little signal beyond his scheme.
   Risk: TabPFN's prior may be less aligned with synthetic Playground data than
         RealMLP. If solo lands at 0.949-0.951, blend won't help — pivot to
         karltonkxb-FE-style fine-tuning or more ensembles.
@@ -50,7 +57,10 @@ from scipy.stats import rankdata
 
 from src.config import PROBS, SUBMISSIONS, TARGET, ID, MODEL_SEED
 from src.data import load_train_pool, load_holdout, load_test, load_original
-from src.features import yekenot_fe_fit, yekenot_fe_transform, yekenot_feature_lists
+from src.features import (
+    yekenot_fe_fit, yekenot_fe_transform,
+    yekenot_feature_lists, yekenot_feature_lists_for_tabpfn,
+)
 from src.evaluate import auc
 from src.observer import Experiment
 from src.blend_math import (
@@ -154,9 +164,18 @@ def main(subsample: int | None, gpu: bool, with_original: bool):
     holdout_fe = yekenot_fe_transform(holdout, fe_state)
     test_fe = yekenot_fe_transform(test, fe_state)
 
-    numeric_feats, cat_feats = yekenot_feature_lists(fe_state)
+    # IMPORTANT: TabPFN-friendly feature split. The default yekenot_feature_lists
+    # produces 18 categoricals (incl. floor-factorize cats with cardinality up to
+    # thousands), which TabPFN cannot embed → model collapses to predicting the
+    # marginal prior (observed v22.100 attempt: holdout AUC 0.50009).
+    # _for_tabpfn keeps only Driver/Compound/Race/Year_cat_/PitStop_cat_ as cats
+    # (cardinalities 887/5/26/4/2) and promotes high-card factorize codes to numeric.
+    numeric_feats, cat_feats = yekenot_feature_lists_for_tabpfn(fe_state)
     feature_cols = numeric_feats + cat_feats
     print(f"feature_cols ({len(feature_cols)}): {len(numeric_feats)} numeric + {len(cat_feats)} categorical")
+    print(f"  cats: {cat_feats}  (cardinalities should all be ≤ ~30 except Driver)")
+    for c in cat_feats:
+        print(f"    {c}: {pool_fe[c].nunique()} unique")
 
     y_pool = pool_fe[TARGET].astype(int).to_numpy()
     y_holdout = holdout_fe[TARGET].astype(int).to_numpy()
@@ -170,20 +189,21 @@ def main(subsample: int | None, gpu: bool, with_original: bool):
     exp = None
     if not is_sanity:
         exp = Experiment.start(
-            version="v22_tabpfn_own",
+            version="v22_tabpfn_simplified",
             parent="v14_yekenot_repro",
             hypothesis=(
-                "karltonkxb's vanilla TabPFN-3 + simple domain FE got 0.94922 LB. "
-                "With yekenot FE (the +0.0037 lever proven on RealMLP v9→v14) on "
-                "the same FinetunedTabPFN backbone (epochs=10, lr=2e-3), we should "
-                "reach solo LB ≥0.952. At ρ≈0.972 with safar1_95449 (LB 0.95449), "
-                "math says blend at w≈0.30 lifts to ~0.9547 (+0.00021). At solo "
-                "≥0.953, blend lifts to ~0.95516 (+0.00067)."
+                "v22.100 attempt with full yekenot FE collapsed to AUC 0.50 — 13 "
+                "floor-factorize cats (cardinality up to ~4000) broke TabPFN's "
+                "embedding tables. Simplified FE: 15 numerics (8 raw + 2 yekenot "
+                "arith + 5 count encodings) + 5 low-card cats (Driver/Compound/"
+                "Race/Year_cat_/PitStop_cat_). Matches karltonkxb's working scheme "
+                "(LB 0.94922) plus yekenot's count-encoding extras. Predicted solo: "
+                "0.949-0.952. Blend lift vs safar1_95449 only realistic if solo ≥ 0.952."
             ),
-            predicted_delta=0.003,
+            predicted_delta=0.0,
             confidence="medium",
             feature_changes=[
-                "+ yekenot FE (vs karltonkxb's domain FE)",
+                "+ simplified yekenot FE (dropped 13 floor-factorize cats + 2 KBins)",
                 "+ sacred 20% holdout for validation",
             ],
             config_changes={
@@ -250,14 +270,14 @@ def main(subsample: int | None, gpu: bool, with_original: bool):
     print(f"Total runtime:                {fit_time + pred_time:.1f}s")
 
     # --- Save artifacts ---
-    out_dir = PROBS / "v22_tabpfn_own"
+    out_dir = PROBS / "v22_tabpfn_simplified"
     out_dir.mkdir(parents=True, exist_ok=True)
     np.save(out_dir / "holdout.npy", holdout_pred)
     np.save(out_dir / "test.npy", test_pred)
     print(f"\nSaved holdout/test probs to {out_dir}/")
 
     sub = pd.DataFrame({ID: test_fe[ID].to_numpy(), TARGET: test_pred})
-    sub_path = SUBMISSIONS / "v22.100.csv"  # .100 marks first own-TabPFN; mixes will be .1XX
+    sub_path = SUBMISSIONS / "v22.200.csv"  # .200 = simplified-FE retry; .2XX for mixes
     sub.to_csv(sub_path, index=False)
     print(f"Saved submission to {sub_path}")
 
@@ -293,7 +313,7 @@ def main(subsample: int | None, gpu: bool, with_original: bool):
         print(f"\n  → MATH RECOMMENDS: w_v22={best_w:.3f}, predicted LB={best_pred:.5f}")
         if best_pred > safar_lb + 0.00003:
             blend = (1 - best_w) * rank_normalize(safar) + best_w * rank_normalize(test_pred)
-            mix_path = SUBMISSIONS / "v22.101.csv"
+            mix_path = SUBMISSIONS / "v22.201.csv"
             pd.DataFrame({ID: test_ids, TARGET: blend}).to_csv(mix_path, index=False)
             print(f"  → saved math-optimal blend to {mix_path}")
         else:

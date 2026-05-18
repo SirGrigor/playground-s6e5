@@ -178,10 +178,11 @@ class Experiment:
         if self.oof_auc_per_fold is None or self.holdout_auc is None or self.oof_auc_mean is None:
             return
 
-        # 1. Fold collapse
-        fold_min = min(self.oof_auc_per_fold)
-        if fold_min < self.oof_auc_mean - 0.01:
-            f.append(f"fold_collapse(fold_min={fold_min:.5f}, mean={self.oof_auc_mean:.5f})")
+        # 1. Fold collapse — only meaningful when CV was actually run
+        if self.oof_auc_per_fold:
+            fold_min = min(self.oof_auc_per_fold)
+            if fold_min < self.oof_auc_mean - 0.01:
+                f.append(f"fold_collapse(fold_min={fold_min:.5f}, mean={self.oof_auc_mean:.5f})")
 
         # 2. Methodology leak
         gap = abs(self.oof_auc_mean - self.holdout_auc)
