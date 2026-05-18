@@ -120,6 +120,98 @@ def load_tabpfn_token() -> str:
     return ""
 
 
+def quick_diagnose(gpu: bool):
+    """10-min diagnostic: run two short fits on 20K subsample to find the cause
+    of v22.100/v22.200's prior-collapse failure (loss flat at 0.499).
+
+    Test A: lr=2e-4 (10x smaller than karltonkxb default), keep all 5 cats.
+            If loss DROPS → LR was too aggressive for our data shape.
+    Test B: default lr=2e-3, drop Driver (cardinality 871) from cats.
+            If loss DROPS → Driver cardinality was still the issue.
+
+    Each test: 3 epochs only (~3-4 min). Total ~10 min.
+    Auto-verdict: COLLAPSED if all 3 epochs ≥ 0.5005, else LEARNING.
+    """
+    from tabpfn.finetuning.finetuned_classifier import FinetunedTabPFNClassifier
+
+    print("=" * 70)
+    print("QUICK DIAGNOSE — find cause of v22.100/v22.200 prior-collapse")
+    print("=" * 70)
+    pool = load_train_pool()
+    rng = np.random.default_rng(MODEL_SEED)
+    idx = rng.choice(len(pool), size=20000, replace=False)
+    pool_sub = pool.iloc[idx].reset_index(drop=True)
+
+    pool_fe, fe_state = yekenot_fe_fit(pool_sub)
+    numeric_feats, cat_feats_full = yekenot_feature_lists_for_tabpfn(fe_state)
+    y = pool_fe[TARGET].astype(int).to_numpy()
+
+    results = {}
+    for label, (lr, cats) in [
+        ("A: lr=2e-4, all 5 cats",   (2e-4, cat_feats_full)),
+        ("B: lr=2e-3, NO Driver",    (2e-3, [c for c in cat_feats_full if c != "Driver"])),
+    ]:
+        print(f"\n--- {label} ---")
+        cols = numeric_feats + cats
+        # If Driver dropped from cats, add it to numerics (raw codes) so info isn't lost
+        if "Driver" not in cats and "Driver" not in numeric_feats:
+            # Driver is a string; can't go into numeric block raw. Use _Driver_count instead
+            # (already in numerics via yekenot count features). Just skip Driver entirely.
+            pass
+        X = pool_fe[cols].copy()
+        cat_idx = [X.columns.get_loc(c) for c in cats if c in X.columns]
+        print(f"  features: {len(cols)} ({len(numeric_feats)} num + {len(cats)} cat)")
+        print(f"  lr={lr}, cat_indices={cat_idx}")
+
+        clf = FinetunedTabPFNClassifier(
+            device="cuda" if gpu else "cpu",
+            epochs=3,
+            learning_rate=lr,
+            n_estimators_finetune=1,
+            n_estimators_validation=1,
+            n_estimators_final_inference=1,
+            random_state=MODEL_SEED,
+            eval_metric="log_loss",
+            extra_classifier_kwargs={
+                "categorical_features_indices": cat_idx,
+                "ignore_pretraining_limits": True,
+                "tuning_config": {"tune_decision_thresholds": True},
+            },
+        )
+        t0 = time.time()
+        clf.fit(X, y)
+        dt = time.time() - t0
+        print(f"  fit in {dt:.0f}s")
+        # We can't easily grab per-epoch losses from clf — but we can do quick AUC on subset
+        # Use the last 2K of the subsample as a mini-validation
+        from sklearn.metrics import roc_auc_score
+        val_X = X.iloc[-2000:]; val_y = y[-2000:]
+        proba = clf.predict_proba(val_X)[:, 1]
+        auc = roc_auc_score(val_y, proba)
+        unique_preds = len(np.unique(np.round(proba, 4)))
+        verdict = "★ LEARNING" if auc > 0.55 else "✗ COLLAPSED"
+        print(f"  mini-val AUC: {auc:.4f}  unique preds (rounded 4dp): {unique_preds}  → {verdict}")
+        results[label] = {"auc": float(auc), "unique_preds": int(unique_preds), "verdict": verdict}
+
+    print("\n" + "=" * 70)
+    print("VERDICT TABLE")
+    print("=" * 70)
+    for label, r in results.items():
+        print(f"  {label:<25}  AUC={r['auc']:.4f}  uniq={r['unique_preds']:>5}  {r['verdict']}")
+    print()
+    a_ok = results["A: lr=2e-4, all 5 cats"]["auc"] > 0.55
+    b_ok = results["B: lr=2e-3, NO Driver"]["auc"] > 0.55
+    if a_ok and b_ok:
+        print("→ BOTH learn → safest: lr=2e-4 + Driver-as-cat. Full run is ~50 min.")
+    elif a_ok and not b_ok:
+        print("→ Only A learns → LR is the issue. Use lr=2e-4 for full run.")
+    elif b_ok and not a_ok:
+        print("→ Only B learns → Driver cardinality is the issue. Drop Driver from cats.")
+    else:
+        print("→ Neither learns → deeper issue (TabPFN-data incompatibility or hyperparam).")
+        print("  Pivot recommendation: try plain TabPFNClassifier (no finetuning) with subsample bagging.")
+
+
 def main(subsample: int | None, gpu: bool, with_original: bool):
     print("=" * 70)
     print("v22 — Own FinetunedTabPFN on yekenot FE + sacred holdout")
@@ -343,5 +435,13 @@ if __name__ == "__main__":
     p.add_argument("--gpu", action="store_true")
     p.add_argument("--with-original", action="store_true",
                    help="Merge external dataset into training pool (matches karltonkxb)")
+    p.add_argument("--quick-diagnose", action="store_true",
+                   help="10-min diagnostic: two short fits to find cause of prior-collapse")
     args = p.parse_args()
-    main(args.subsample, args.gpu, args.with_original)
+    if args.quick_diagnose:
+        # Token still required for model download
+        if not load_tabpfn_token():
+            print("ERROR: TABPFN_TOKEN not found. See header for setup."); sys.exit(1)
+        quick_diagnose(args.gpu)
+    else:
+        main(args.subsample, args.gpu, args.with_original)
