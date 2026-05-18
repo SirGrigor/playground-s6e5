@@ -215,9 +215,10 @@ def quick_diagnose(gpu: bool):
         print("  Pivot recommendation: try plain TabPFNClassifier (no finetuning) with subsample bagging.")
 
 
-def main(subsample: int | None, gpu: bool, with_original: bool):
+def main(subsample: int | None, gpu: bool, with_original: bool, seed: int | None = None):
+    actual_seed = seed if seed is not None else MODEL_SEED
     print("=" * 70)
-    print("v22 — Own FinetunedTabPFN on yekenot FE + sacred holdout")
+    print(f"v22 — Own FinetunedTabPFN on yekenot FE + sacred holdout (seed={actual_seed})")
     print("=" * 70)
 
     # Step 0: require TabPFN token (cloud fine-tuning) unless local sanity
@@ -329,7 +330,7 @@ def main(subsample: int | None, gpu: bool, with_original: bool):
         n_estimators_finetune=1,
         n_estimators_validation=1,
         n_estimators_final_inference=1,
-        random_state=MODEL_SEED,
+        random_state=actual_seed,
         eval_metric="log_loss",
         extra_classifier_kwargs={
             "categorical_features_indices": categorical_indices,
@@ -363,14 +364,18 @@ def main(subsample: int | None, gpu: bool, with_original: bool):
     print(f"Total runtime:                {fit_time + pred_time:.1f}s")
 
     # --- Save artifacts ---
-    out_dir = PROBS / "v22_tabpfn_epochs6"
+    # When --seed override is used, suffix the output dir + submission so
+    # we can later average across seeds without overwriting.
+    suffix = f"_seed{actual_seed}" if seed is not None else ""
+    out_dir = PROBS / f"v22_tabpfn_epochs6{suffix}"
     out_dir.mkdir(parents=True, exist_ok=True)
     np.save(out_dir / "holdout.npy", holdout_pred)
     np.save(out_dir / "test.npy", test_pred)
     print(f"\nSaved holdout/test probs to {out_dir}/")
 
     sub = pd.DataFrame({ID: test_fe[ID].to_numpy(), TARGET: test_pred})
-    sub_path = SUBMISSIONS / "v22.300.csv"  # .300 = epochs-6 retry
+    sub_name = f"v22.300{suffix}.csv" if suffix else "v22.300.csv"
+    sub_path = SUBMISSIONS / sub_name
     sub.to_csv(sub_path, index=False)
     print(f"Saved submission to {sub_path}")
 
@@ -453,6 +458,8 @@ if __name__ == "__main__":
                    help="Merge external dataset into training pool (matches karltonkxb)")
     p.add_argument("--quick-diagnose", action="store_true",
                    help="10-min diagnostic: two short fits to find cause of prior-collapse")
+    p.add_argument("--seed", type=int, default=None,
+                   help="Override MODEL_SEED for multi-seed bagging (e.g., --seed 7)")
     args = p.parse_args()
     if args.quick_diagnose:
         # Token still required for model download
@@ -460,4 +467,4 @@ if __name__ == "__main__":
             print("ERROR: TABPFN_TOKEN not found. See header for setup."); sys.exit(1)
         quick_diagnose(args.gpu)
     else:
-        main(args.subsample, args.gpu, args.with_original)
+        main(args.subsample, args.gpu, args.with_original, seed=args.seed)
